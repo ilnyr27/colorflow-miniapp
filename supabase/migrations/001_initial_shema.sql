@@ -89,12 +89,12 @@ CREATE INDEX idx_star_purchases_user_id ON star_purchases(user_id);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $
+RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$ language 'plpgsql';
+$$ language 'plpgsql';
 
 -- Add triggers for updated_at
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -103,40 +103,9 @@ CREATE TRIGGER update_palettes_updated_at BEFORE UPDATE ON palettes FOR EACH ROW
 -- Insert initial game stats
 INSERT INTO game_stats (id) VALUES (uuid_generate_v4());
 
--- RLS (Row Level Security) policies
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE colors ENABLE ROW LEVEL SECURITY;
-ALTER TABLE palettes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE marketplace_listings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE star_purchases ENABLE ROW LEVEL SECURITY;
-
--- Users can only see/edit their own data
-CREATE POLICY "Users can view own data" ON users FOR SELECT USING (auth.uid()::text = telegram_id::text);
-CREATE POLICY "Users can update own data" ON users FOR UPDATE USING (auth.uid()::text = telegram_id::text);
-
--- Colors policies
-CREATE POLICY "Users can view own colors" ON colors FOR SELECT USING (auth.uid()::text = user_id::text);
-CREATE POLICY "Users can insert own colors" ON colors FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
-CREATE POLICY "Users can update own colors" ON colors FOR UPDATE USING (auth.uid()::text = user_id::text);
-CREATE POLICY "Users can delete own colors" ON colors FOR DELETE USING (auth.uid()::text = user_id::text);
-
--- Palettes policies
-CREATE POLICY "Users can view own palettes" ON palettes FOR SELECT USING (auth.uid()::text = user_id::text);
-CREATE POLICY "Users can insert own palettes" ON palettes FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
-CREATE POLICY "Users can update own palettes" ON palettes FOR UPDATE USING (auth.uid()::text = user_id::text);
-
--- Marketplace policies (public read, own write)
-CREATE POLICY "Anyone can view marketplace" ON marketplace_listings FOR SELECT USING (true);
-CREATE POLICY "Users can create own listings" ON marketplace_listings FOR INSERT WITH CHECK (auth.uid()::text = seller_id::text);
-CREATE POLICY "Users can delete own listings" ON marketplace_listings FOR DELETE USING (auth.uid()::text = seller_id::text);
-
--- Star purchases policies
-CREATE POLICY "Users can view own purchases" ON star_purchases FOR SELECT USING (auth.uid()::text = user_id::text);
-CREATE POLICY "Users can insert own purchases" ON star_purchases FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
-
--- Functions for game logic
+-- Function to get available rarities for purchase
 CREATE OR REPLACE FUNCTION get_available_rarities_for_purchase(player_telegram_id BIGINT)
-RETURNS TABLE(rarity VARCHAR(20), price_stars INTEGER) AS $
+RETURNS TABLE(rarity VARCHAR(20), price_stars INTEGER) AS $$
 BEGIN
   RETURN QUERY
   WITH player_data AS (
@@ -161,11 +130,11 @@ BEGIN
     AND rt.rarity_name != 'ulterior' -- Ulterior не продается
     AND rt.rarity_name != 'ultimate'; -- Ultimate не продается
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to complete staking automatically
 CREATE OR REPLACE FUNCTION complete_expired_stakings()
-RETURNS INTEGER AS $
+RETURNS INTEGER AS $$
 DECLARE
   completed_count INTEGER := 0;
   staking_record RECORD;
@@ -200,7 +169,4 @@ BEGIN
   
   RETURN completed_count;
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Create a cron job to complete expired stakings (if pg_cron is available)
--- SELECT cron.schedule('complete-stakings', '* * * * *', 'SELECT complete_expired_stakings();');
+$$ LANGUAGE plpgsql SECURITY DEFINER;
