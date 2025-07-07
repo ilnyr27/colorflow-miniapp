@@ -26,14 +26,6 @@ export const LoadingScreen: React.FC = () => {
                   repeat: Infinity,
                   ease: 'linear',
                   delay: i * 0.2
-              }}
-            />
-          ))}
-        </motion.div>
-      </div>
-    </div>
-  );
-};0.1
                 }}
               />
             ))}
@@ -75,4 +67,12 @@ export const LoadingScreen: React.FC = () => {
               transition={{
                 duration: 1.5,
                 repeat: Infinity,
-                delay: i *
+                delay: i * 0.2
+              }}
+            />
+          ))}
+        </motion.div>
+      </div>
+    </div>
+  );
+};

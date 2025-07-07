@@ -21,7 +21,8 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          telegram: ['@tma.js/sdk'],
+          motion: ['framer-motion'],
+          store: ['zustand'],
           supabase: ['@supabase/supabase-js']
         }
       }
@@ -30,5 +31,8 @@ export default defineConfig({
   define: {
     // Убираем предупреждения в production
     global: 'globalThis',
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'framer-motion', 'zustand']
   }
 })

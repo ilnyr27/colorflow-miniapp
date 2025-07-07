@@ -39,7 +39,7 @@ interface GameStore extends GameState {
 }
 
 const createInitialPalettes = (): Record<ColorRarity, Palette> => {
-  const palettes: Record<ColorRarity, Palette> = {} as any;
+  const palettes = {} as Record<ColorRarity, Palette>;
   
   GAME_CONFIG.RARITY_LEVELS.forEach(rarity => {
     const maxSlots = GAME_CONFIG.UPGRADE_REQUIREMENTS[rarity];
@@ -359,11 +359,13 @@ export const useGameStore = create<GameStore>()(
 
     listColorForSale: async (colorId: string, priceStars: number) => {
       // TODO: Implement marketplace listing
+      // Заглушка: добавить логику выставления цвета на продажу
       console.log('Listing color for sale:', colorId, priceStars);
     },
 
     purchaseFromMarketplace: async (listingId: string) => {
       // TODO: Implement marketplace purchase
+      // Заглушка: добавить логику покупки с маркетплейса
       console.log('Purchasing from marketplace:', listingId);
     },
 

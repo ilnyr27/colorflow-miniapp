@@ -20,12 +20,15 @@ function App() {
   } = useGameStore();
 
   useEffect(() => {
-    const initializeApp = async () => {
+    const initializeApp = async (retryCount = 0) => {
+      const maxRetries = 3;
+      const retryDelay = 1000 * Math.pow(2, retryCount); // Exponential backoff
+      
       try {
         if (!isReady) return;
 
         if (!user) {
-          setError('Пользователь Telegram не найден');
+          setError('Пользователь Telegram не найден. Убедитесь, что приложение запущено в Telegram.');
           return;
         }
 
@@ -48,9 +51,18 @@ function App() {
 
         setIsLoading(false);
       } catch (err) {
-        console.error('Ошибка инициализации:', err);
-        setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
-        setIsLoading(false);
+        console.error(`Ошибка инициализации (попытка ${retryCount + 1}):`, err);
+        
+        if (retryCount < maxRetries) {
+          console.log(`Повторная попытка через ${retryDelay}мс...`);
+          setTimeout(() => initializeApp(retryCount + 1), retryDelay);
+        } else {
+          const errorMessage = err instanceof Error 
+            ? `Ошибка инициализации: ${err.message}` 
+            : 'Неизвестная ошибка при загрузке игры';
+          setError(errorMessage);
+          setIsLoading(false);
+        }
       }
     };
 

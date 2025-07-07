@@ -516,3 +516,83 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
+
+/* Стили для игрового интерфейса */
+.game-interface {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.game-header {
+  padding: 1rem;
+  background: rgba(0,0,0,0.1);
+}
+
+.color-gallery {
+  padding: 1rem;
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  margin: 1rem;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 8px;
+}
+
+.color-item {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+}
+
+.palette-section {
+  padding: 1rem;
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  margin: 1rem;
+}
+
+.palette-slots {
+  display: flex;
+  gap: 8px;
+  margin: 1rem 0;
+}
+
+.palette-slot {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  border: 2px dashed rgba(255,255,255,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.color-wheel {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.color-segment {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+}

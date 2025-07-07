@@ -1,6 +1,8 @@
 {
   "name": "colorflow-miniapp",
   "version": "0.1.0",
+  "description": "ColorFlow - Contemplative color collecting game for Telegram Mini Apps",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,14 +12,16 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "@tma.js/sdk": "^2.2.0",
+    "@supabase/supabase-js": "^2.39.0",
     "zustand": "^4.4.7",
-    "framer-motion": "^10.16.16"
-  },
-  "devDependencies": {
+    "framer-motion": "^10.16.16",
+    "lucide-react": "^0.263.1",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.2.1",
     "typescript": "^5.2.2",
     "vite": "^5.0.8"
-  }
+  },
+  "homepage": "https://colorflow-miniapp.vercel.app"
 }
