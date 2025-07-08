@@ -120,7 +120,11 @@ export const useGameStore = create<GameStore>()(
       try {
         const color = ColorGenerator.generateColor('common');
         
+        // Создаем цвет в базе данных
         await GameAPI.createColor(user.id, color);
+        
+        // КРИТИЧЕСКИ ВАЖНО: Обновляем флаг в базе данных
+        await GameAPI.updateUserFreeColorFlag(user.id);
         
         set(state => ({
           gallery: [...state.gallery, color],

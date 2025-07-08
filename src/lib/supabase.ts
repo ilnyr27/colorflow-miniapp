@@ -284,4 +284,38 @@ export class GameAPI {
 
     if (error) throw error;
   }
+
+  static async updateUserFreeColorFlag(userId: number): Promise<void> {
+    const { error } = await supabase
+      .from('users')
+      .update({ received_free_color: true })
+      .eq('telegram_id', userId);
+
+    if (error) throw error;
+  }
+
+  // Функция для сброса тестовых данных пользователя (только для разработки)
+  static async resetUserData(userId: number): Promise<void> {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Сброс данных недоступен в продакшене');
+    }
+
+    // Удаляем все цвета пользователя
+    await supabase
+      .from('colors')
+      .delete()
+      .eq('user_id', userId);
+
+    // Сбрасываем флаг получения бесплатного цвета
+    await supabase
+      .from('users')
+      .update({ 
+        received_free_color: false,
+        flow_tokens: 100,
+        highest_rarity_achieved: 'common'
+      })
+      .eq('telegram_id', userId);
+
+    console.log(`Данные пользователя ${userId} сброшены`);
+  }
 }

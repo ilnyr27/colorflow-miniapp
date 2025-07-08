@@ -72,6 +72,7 @@ export interface ColorConfig {
   RARITY_LEVELS: ColorRarity[];
   TOTAL_COLOR_COUNTS: Record<ColorRarity, number>;
   STAKING_TIME_TABLE: StakingTimeTable;
+  STAKING_TIMES: Record<ColorRarity, number>; // Время стейкинга в минутах для демо
   UPGRADE_REQUIREMENTS: Record<ColorRarity, number>;
   FIXED_UNIQUE_COLORS: RGB[];
   FIXED_ULTERIOR_COLORS: RGB[];

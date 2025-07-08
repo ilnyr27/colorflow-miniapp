@@ -39,6 +39,19 @@ export const GAME_CONFIG: ColorConfig = {
     ultimate: [0] // Не стейкается
   },
 
+  // Базовое время стейкинга в минутах (для демо и тестирования)
+  STAKING_TIMES: {
+    common: 1, // 1 минута для демо
+    uncommon: 2, // 2 минуты
+    rare: 5, // 5 минут
+    mythical: 10, // 10 минут
+    legendary: 15, // 15 минут
+    ascendant: 30, // 30 минут
+    unique: 60, // 1 час
+    ulterior: 120, // 2 часа
+    ultimate: 0 // Не стейкается
+  },
+
   // Требования для улучшения (сколько цветов нужно)
   UPGRADE_REQUIREMENTS: {
     common: 6,
