@@ -3,7 +3,7 @@ import { useTelegram } from '@/hooks/useTelegram';
 import { GameAPI } from '@/lib/supabase';
 import { useGameStore } from '@/store/gameStore';
 import { LoadingScreen } from '@/components/LoadingScreen';
-import { GameInterface } from '@/components/GameInterface';
+import { AppRouter } from '@/components/AppRouter';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import './App.css';
 
@@ -28,6 +28,36 @@ function App() {
         if (!isReady) return;
 
         if (!user) {
+          // В режиме разработки создаем демо-пользователя
+          if (process.env.NODE_ENV === 'development') {
+            const demoUser = {
+              id: 123456789,
+              first_name: 'Demo',
+              last_name: 'User',
+              username: 'demouser',
+              language_code: 'ru'
+            };
+            setUser(demoUser);
+            
+            // Продолжаем инициализацию с демо-пользователем
+            try {
+              const dbUser = await GameAPI.getOrCreateUser(demoUser.id, {
+                username: demoUser.username,
+                firstName: demoUser.first_name,
+                lastName: demoUser.last_name
+              });
+
+              console.log('Демо-пользователь в БД:', dbUser);
+              await initializeGame(demoUser.id);
+              setIsLoading(false);
+            } catch (err) {
+              console.error('Ошибка инициализации демо-пользователя:', err);
+              setError('Ошибка инициализации демо-режима');
+              setIsLoading(false);
+            }
+            return;
+          }
+          
           setError('Пользователь Telegram не найден. Убедитесь, что приложение запущено в Telegram.');
           return;
         }
@@ -96,7 +126,7 @@ function App() {
     return <WelcomeScreen />;
   }
 
-  return <GameInterface />;
+  return <AppRouter />;
 }
 
 export default App;

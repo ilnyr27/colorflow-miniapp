@@ -383,6 +383,14 @@ export const useGameStore = create<GameStore>()(
       
       const available: ColorRarity[] = [];
       
+      // Для демо: делаем доступными первые несколько редкостей
+      const isDemoMode = window.location.pathname.includes('demo');
+      
+      if (isDemoMode) {
+        // В демо-режиме доступны uncommon, rare, mythical для тестирования
+        return ['uncommon', 'rare', 'mythical'];
+      }
+      
       for (const rarity of GAME_CONFIG.RARITY_LEVELS) {
         const requiredDays = PROGRESSION_TIMELINE[rarity];
         const rarityIndex = GAME_CONFIG.RARITY_LEVELS.indexOf(rarity);

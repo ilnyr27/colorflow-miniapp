@@ -532,6 +532,210 @@
             }
         }
 
+        /* Shop Button */
+        .shop-section {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .shop-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-color), var(--success-color));
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+            position: relative;
+            width: 100%;
+        }
+
+        .shop-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
+        }
+
+        .shop-badge {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--accent-color);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+        }
+
+        /* Shop Modal */
+        .shop-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .shop-content {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .shop-title {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: var(--text-primary);
+        }
+
+        .shop-title h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .shop-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-size: 1.5rem;
+        }
+
+        .shop-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .shop-body {
+            padding: 1.5rem;
+        }
+
+        .shop-items {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .shop-item {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .shop-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .rarity-badge {
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .item-price {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .item-description {
+            margin-bottom: 1rem;
+        }
+
+        .item-description p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .purchase-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .purchase-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .shop-footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            border-radius: 0 0 16px 16px;
+            text-align: center;
+        }
+
+        .payment-info p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin: 0.2rem 0;
+        }
+
         /* Color definitions */
         .common { color: #9e9e9e; }
         .uncommon { color: #4caf50; }
@@ -607,6 +811,15 @@
                             <div class="stat-label">Улучшений</div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Shop Button -->
+                <div class="shop-section">
+                    <button class="shop-button" onclick="openShop()">
+                        <span>🛒</span>
+                        <span>Магазин</span>
+                        <span class="shop-badge">3</span>
+                    </button>
                 </div>
             </div>
 
@@ -889,6 +1102,117 @@
                 'ultimate': '72 часа'
             };
             return times[rarity] || '30 минут';
+        }
+
+        // Shop functionality
+        function openShop() {
+            const shopModal = document.createElement('div');
+            shopModal.className = 'shop-modal';
+            shopModal.onclick = (e) => {
+                if (e.target === shopModal) {
+                    closeShop();
+                }
+            };
+
+            const availableItems = [
+                {
+                    rarity: 'uncommon',
+                    name: 'Необычный',
+                    description: 'Слегка более насыщенные цвета с приятными тонами',
+                    price: 5,
+                    color: '#4caf50'
+                },
+                {
+                    rarity: 'rare',
+                    name: 'Редкий',
+                    description: 'Мягкие, заметные оттенки с глубиной и характером',
+                    price: 15,
+                    color: '#2196f3'
+                },
+                {
+                    rarity: 'mythical',
+                    name: 'Мифический',
+                    description: 'Пастельные, но яркие цвета с магическим очарованием',
+                    price: 50,
+                    color: '#9c27b0'
+                }
+            ];
+
+            shopModal.innerHTML = `
+                <div class="shop-content">
+                    <div class="shop-header">
+                        <div class="shop-title">
+                            <span>🛒</span>
+                            <h2>Магазин цветов</h2>
+                        </div>
+                        <button class="shop-close" onclick="closeShop()">×</button>
+                    </div>
+                    
+                    <div class="shop-body">
+                        <div class="shop-items">
+                            ${availableItems.map(item => `
+                                <div class="shop-item" style="border-color: ${item.color};">
+                                    <div class="item-header">
+                                        <div class="rarity-badge" style="background-color: ${item.color};">
+                                            ${item.name}
+                                        </div>
+                                        <div class="item-price">
+                                            <span>⭐</span>
+                                            <span>${item.price}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="item-description">
+                                        <p>${item.description}</p>
+                                    </div>
+                                    
+                                    <button class="purchase-btn" style="background-color: ${item.color};" onclick="purchaseColor('${item.rarity}', ${item.price})">
+                                        <span>⭐</span>
+                                        <span>Купить за ${item.price} Stars</span>
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="shop-footer">
+                        <div class="payment-info">
+                            <p>💳 Оплата через Telegram Stars</p>
+                            <p>🔒 Безопасные платежи через Telegram</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(shopModal);
+            
+            // Simulate haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        }
+
+        function closeShop() {
+            const shopModal = document.querySelector('.shop-modal');
+            if (shopModal) {
+                shopModal.remove();
+            }
+        }
+
+        function purchaseColor(rarity, price) {
+            // Simulate purchase process
+            const confirmPurchase = confirm(`Купить ${rarity} цвет за ${price} Stars?\n\nЭто демо-версия, реальная покупка не произойдет.`);
+            
+            if (confirmPurchase) {
+                // Simulate successful purchase
+                alert(`🎉 Поздравляем! Вы получили новый ${rarity} цвет!\n\nВ реальной игре цвет будет добавлен в вашу галерею.`);
+                closeShop();
+                
+                // Simulate haptic feedback
+                if (navigator.vibrate) {
+                    navigator.vibrate([100, 50, 100]);
+                }
+            }
         }
 
         // Initialize demo when page loads
