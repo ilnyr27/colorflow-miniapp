@@ -93,7 +93,7 @@ export const HomePage: React.FC = () => {
               </div>
               <div className="stat-info">
                 <div className="stat-value">{totalColors}</div>
-                <div className="stat-label">Всего цветов</div>
+                <div className="stat-label">Собрано оттенков</div>
               </div>
             </div>
 

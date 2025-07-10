@@ -44,6 +44,12 @@ export const Navigation: React.FC<NavigationProps> = ({ className = '' }) => {
       color: '#e17055'
     },
     {
+      path: '/marketplace',
+      icon: Star,
+      label: 'Маркетплейс',
+      color: '#f39c12'
+    },
+    {
       path: '/settings',
       icon: Settings,
       label: 'Настройки',

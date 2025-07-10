@@ -6,6 +6,7 @@ import { HomePage } from '@/pages/HomePage';
 import { ColorsPage } from '@/pages/ColorsPage';
 import { RaritiesPage } from '@/pages/RaritiesPage';
 import { ShopPage } from '@/pages/ShopPage';
+import { MarketplacePage } from '@/pages/MarketplacePage';
 import { SettingsPage } from '@/pages/SettingsPage';
 
 export const AppRouter: React.FC = () => {
@@ -37,6 +38,7 @@ export const AppRouter: React.FC = () => {
             <Route path="/colors" element={<ColorsPage />} />
             <Route path="/rarities" element={<RaritiesPage />} />
             <Route path="/shop" element={<ShopPage />} />
+            <Route path="/marketplace" element={<MarketplacePage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </motion.main>
