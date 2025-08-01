@@ -2,28 +2,28 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/store/gameStore';
 import { useTelegram } from '@/hooks/useTelegram';
-import { GAME_CONFIG, PROGRESSION_TIMELINE, RARITY_COLORS } from '@/config/game';
-import { Trophy, List, Clock, Star, Lock, CheckCircle } from 'lucide-react';
+import { GAME_CONFIG, PROGRESSION_TIMELINE, RARITY_COLORS, ACHIEVEMENT_TITLES, ACHIEVEMENT_DESCRIPTIONS } from '@/config/game';
+import { Trophy, User, Globe, Star, Lock, CheckCircle, Clock, Target } from 'lucide-react';
 import { ColorRarity } from '@/types/game';
 
-type RaritiesTab = 'list' | 'progression' | 'achievements';
+type RaritiesTab = 'personal' | 'global' | 'achievements';
 
 export const RaritiesPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<RaritiesTab>('list');
+  const [activeTab, setActiveTab] = useState<RaritiesTab>('personal');
   const { gallery, highestRarityAchieved, startDate } = useGameStore();
   const { colorScheme, hapticFeedback } = useTelegram();
 
   const tabs = [
     {
-      id: 'list' as RaritiesTab,
-      label: 'Список',
-      icon: List,
+      id: 'personal' as RaritiesTab,
+      label: 'Моя коллекция',
+      icon: User,
       color: '#6c5ce7'
     },
     {
-      id: 'progression' as RaritiesTab,
-      label: 'Прогресс',
-      icon: Clock,
+      id: 'global' as RaritiesTab,
+      label: 'Общая статистика',
+      icon: Globe,
       color: '#00b894'
     },
     {
@@ -76,6 +76,18 @@ export const RaritiesPage: React.FC = () => {
     if (rarityIndex <= highestIndex) return 'achieved';
     if (daysPlaying >= requiredDays) return 'available';
     return 'locked';
+  };
+
+  // Глобальная статистика (мок данные)
+  const globalStats = {
+    totalPlayers: 15847,
+    totalColors: 2847392,
+    dailyActive: 3421,
+    topCollectors: [
+      { name: 'ColorMaster', colors: 1247, rarity: 'ultimate' },
+      { name: 'PaletteKing', colors: 1156, rarity: 'ultimate' },
+      { name: 'ChromaLord', colors: 987, rarity: 'ulterior' }
+    ]
   };
 
   return (
@@ -154,9 +166,9 @@ export const RaritiesPage: React.FC = () => {
         animate="visible"
       >
         <AnimatePresence mode="wait">
-          {activeTab === 'list' && (
+          {activeTab === 'personal' && (
             <motion.div
-              key="list"
+              key="personal"
               className="tab-content-panel"
               variants={itemVariants}
               initial="hidden"
@@ -165,18 +177,17 @@ export const RaritiesPage: React.FC = () => {
             >
               <div className="content-section">
                 <h3 className="section-title">
-                  <List size={20} />
-                  Все редкости
+                  <User size={20} />
+                  Моя коллекция
                 </h3>
                 <p className="section-description">
-                  Полный список всех уровней редкости в игре и их характеристики.
+                  Ваши цвета по редкостям и прогресс стейкинга.
                 </p>
                 
                 <div className="rarities-list">
-                  {GAME_CONFIG.RARITY_LEVELS.map((rarity, index) => {
+                  {GAME_CONFIG.RARITY_LEVELS.map((rarity) => {
                     const status = getRarityStatus(rarity);
                     const ownedCount = colorsByRarity[rarity]?.length || 0;
-                    const totalCount = GAME_CONFIG.TOTAL_COLOR_COUNTS[rarity];
                     const stakingTime = GAME_CONFIG.STAKING_TIME_TABLE[rarity]?.[0] || 0;
                     const upgradeReq = GAME_CONFIG.UPGRADE_REQUIREMENTS[rarity];
                     
@@ -201,36 +212,19 @@ export const RaritiesPage: React.FC = () => {
                               <h4 className="rarity-name" style={{ color: RARITY_COLORS[rarity] }}>
                                 {rarity.charAt(0).toUpperCase() + rarity.slice(1)}
                               </h4>
-                              <div className="rarity-stats">
-                                <span>#{index + 1}</span>
-                                <span>•</span>
-                                <span>{ownedCount}/{totalCount.toLocaleString()}</span>
-                              </div>
+                              <p className="rarity-count">Цветов: {ownedCount}</p>
                             </div>
                           </div>
-                          
-                          <div className="rarity-progress">
-                            <div className="progress-circle">
-                              <span>{ownedCount}</span>
+                          <div className="rarity-stats">
+                            <div className="stat-item">
+                              <Clock size={14} />
+                              <span>{stakingTime}ч стейкинг</span>
+                            </div>
+                            <div className="stat-item">
+                              <Target size={14} />
+                              <span>{upgradeReq} для улучшения</span>
                             </div>
                           </div>
-                        </div>
-                        
-                        <div className="rarity-properties">
-                          <div className="property">
-                            <Clock size={14} />
-                            <span>Стейкинг: {stakingTime}ч</span>
-                          </div>
-                          <div className="property">
-                            <Trophy size={14} />
-                            <span>Улучшение: {upgradeReq} цветов</span>
-                          </div>
-                          {GAME_CONFIG.STAR_PRICES[rarity] > 0 && (
-                            <div className="property">
-                              <Star size={14} />
-                              <span>Цена: {GAME_CONFIG.STAR_PRICES[rarity]} ⭐</span>
-                            </div>
-                          )}
                         </div>
                       </motion.div>
                     );
@@ -240,9 +234,9 @@ export const RaritiesPage: React.FC = () => {
             </motion.div>
           )}
 
-          {activeTab === 'progression' && (
+          {activeTab === 'global' && (
             <motion.div
-              key="progression"
+              key="global"
               className="tab-content-panel"
               variants={itemVariants}
               initial="hidden"
@@ -251,56 +245,51 @@ export const RaritiesPage: React.FC = () => {
             >
               <div className="content-section">
                 <h3 className="section-title">
-                  <Clock size={20} />
-                  Временная шкала
+                  <Globe size={20} />
+                  Общая статистика
                 </h3>
                 <p className="section-description">
-                  Прогресс открытия новых редкостей. Вы играете {daysPlaying} дней.
+                  Масштабы ColorFlow и топ коллекционеры.
                 </p>
                 
-                <div className="progression-timeline">
-                  {GAME_CONFIG.RARITY_LEVELS.map((rarity, index) => {
-                    const requiredDays = PROGRESSION_TIMELINE[rarity];
-                    const isUnlocked = daysPlaying >= requiredDays;
-                    const isAchieved = getRarityStatus(rarity) === 'achieved';
-                    
-                    return (
-                      <motion.div
-                        key={rarity}
-                        className={`timeline-item ${isUnlocked ? 'unlocked' : 'locked'} ${isAchieved ? 'achieved' : ''}`}
-                        variants={itemVariants}
-                      >
-                        <div className="timeline-marker">
-                          <div 
-                            className="marker-dot"
-                            style={{ backgroundColor: isUnlocked ? RARITY_COLORS[rarity] : '#adb5bd' }}
-                          >
-                            {isAchieved && <CheckCircle size={12} />}
-                          </div>
-                          {index < GAME_CONFIG.RARITY_LEVELS.length - 1 && (
-                            <div className="timeline-line" />
-                          )}
+                <div className="global-stats-grid">
+                  <motion.div className="stat-card" variants={itemVariants}>
+                    <div className="stat-value">{globalStats.totalPlayers.toLocaleString()}</div>
+                    <div className="stat-label">Всего игроков</div>
+                  </motion.div>
+                  
+                  <motion.div className="stat-card" variants={itemVariants}>
+                    <div className="stat-value">{globalStats.totalColors.toLocaleString()}</div>
+                    <div className="stat-label">Создано цветов</div>
+                  </motion.div>
+                  
+                  <motion.div className="stat-card" variants={itemVariants}>
+                    <div className="stat-value">{globalStats.dailyActive.toLocaleString()}</div>
+                    <div className="stat-label">Активных сегодня</div>
+                  </motion.div>
+                </div>
+
+                <div className="top-collectors">
+                  <h4>🏆 Топ коллекционеры</h4>
+                  {globalStats.topCollectors.map((collector, index) => (
+                    <motion.div
+                      key={collector.name}
+                      className="collector-item"
+                      variants={itemVariants}
+                    >
+                      <div className="collector-rank">#{index + 1}</div>
+                      <div className="collector-info">
+                        <div className="collector-name">{collector.name}</div>
+                        <div className="collector-stats">
+                          {collector.colors} цветов • {collector.rarity}
                         </div>
-                        
-                        <div className="timeline-content">
-                          <h4 
-                            className="timeline-title"
-                            style={{ color: isUnlocked ? RARITY_COLORS[rarity] : '#6c757d' }}
-                          >
-                            {rarity.charAt(0).toUpperCase() + rarity.slice(1)}
-                          </h4>
-                          <div className="timeline-info">
-                            <span>День {requiredDays}</span>
-                            {!isUnlocked && (
-                              <span className="time-remaining">
-                                (через {requiredDays - daysPlaying} дней)
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                      </div>
+                      <div 
+                        className="collector-badge"
+                        style={{ backgroundColor: RARITY_COLORS[collector.rarity as ColorRarity] }}
+                      />
+                    </motion.div>
+                  ))}
                 </div>
               </div>
             </motion.div>
@@ -321,49 +310,46 @@ export const RaritiesPage: React.FC = () => {
                   Достижения
                 </h3>
                 <p className="section-description">
-                  Особые награды за достижение определенных редкостей.
+                  Эпичные титулы и награды за коллекционирование.
                 </p>
                 
-                <div className="achievements-grid">
-                  {['ascendant', 'unique', 'ulterior', 'ultimate'].map((rarity) => {
-                    const isAchieved = getRarityStatus(rarity as ColorRarity) === 'achieved';
-                    const reward = {
-                      ascendant: 100,
-                      unique: 250,
-                      ulterior: 500,
-                      ultimate: 1000
-                    }[rarity] || 0;
+                <div className="achievements-list">
+                  {GAME_CONFIG.RARITY_LEVELS.slice(1).map((rarity) => {
+                    const isAchieved = getRarityStatus(rarity) === 'achieved';
+                    const title = (ACHIEVEMENT_TITLES as any)[rarity] || rarity.charAt(0).toUpperCase() + rarity.slice(1);
+                    const description = (ACHIEVEMENT_DESCRIPTIONS as any)[rarity] || `Достигните редкости ${rarity}`;
                     
                     return (
                       <motion.div
                         key={rarity}
                         className={`achievement-card ${isAchieved ? 'achieved' : 'locked'}`}
                         variants={itemVariants}
-                        style={{ borderColor: RARITY_COLORS[rarity as ColorRarity] }}
+                        style={{ borderColor: RARITY_COLORS[rarity] }}
                       >
                         <div className="achievement-icon">
-                          {isAchieved ? (
-                            <CheckCircle size={32} style={{ color: RARITY_COLORS[rarity as ColorRarity] }} />
-                          ) : (
-                            <Lock size={32} style={{ color: '#adb5bd' }} />
-                          )}
-                        </div>
-                        
-                        <div className="achievement-info">
-                          <h4 
-                            className="achievement-title"
-                            style={{ color: isAchieved ? RARITY_COLORS[rarity as ColorRarity] : '#6c757d' }}
+                          <div 
+                            className="achievement-badge"
+                            style={{ backgroundColor: RARITY_COLORS[rarity] }}
                           >
-                            Первый {rarity}
-                          </h4>
-                          <p className="achievement-description">
-                            Получите свой первый цвет редкости {rarity}
-                          </p>
-                          <div className="achievement-reward">
-                            <Star size={16} />
-                            <span>+{reward} FlowTokens</span>
+                            {isAchieved ? <Trophy size={20} /> : <Lock size={20} />}
                           </div>
                         </div>
+                        
+                        <div className="achievement-content">
+                          <h4 className="achievement-title" style={{ color: RARITY_COLORS[rarity] }}>
+                            {title}
+                          </h4>
+                          <p className="achievement-description">{description}</p>
+                          <div className="achievement-rarity">
+                            Редкость: {rarity.charAt(0).toUpperCase() + rarity.slice(1)}
+                          </div>
+                        </div>
+                        
+                        {isAchieved && (
+                          <div className="achievement-status">
+                            <CheckCircle size={24} style={{ color: RARITY_COLORS[rarity] }} />
+                          </div>
+                        )}
                       </motion.div>
                     );
                   })}

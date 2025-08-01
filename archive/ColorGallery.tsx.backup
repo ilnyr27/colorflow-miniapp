@@ -1,0 +1,514 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useGameStore } from '@/store/gameStore';
+import { useTelegram } from '@/hooks/useTelegram';
+import { ColorGenerator } from '@/utils/colorGenerator';
+import { Info, Plus, X, DollarSign, ShoppingCart } from 'lucide-react';
+
+export const ColorGallery: React.FC = () => {
+  const { gallery, addColorToPalette, activePaletteTab, palettes, listColorForSale } = useGameStore();
+  const { hapticFeedback } = useTelegram();
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [showColorInfo, setShowColorInfo] = useState<string | null>(null);
+  const [showSellModal, setShowSellModal] = useState<string | null>(null);
+  const [sellPrice, setSellPrice] = useState<string>('');
+
+  const handleColorClick = (colorId: string) => {
+    hapticFeedback.light();
+    setShowColorInfo(colorId);
+  };
+
+  const closeColorInfo = () => {
+    setShowColorInfo(null);
+    setSelectedColor(null);
+  };
+
+  const handleSellColor = async (colorId: string, price: number) => {
+    try {
+      await listColorForSale(colorId, price);
+      setShowSellModal(null);
+      setSellPrice('');
+      hapticFeedback.heavy();
+      alert('Цвет выставлен на продажу!');
+    } catch (error) {
+      console.error('Ошибка выставления на продажу:', error);
+      alert(error instanceof Error ? error.message : 'Ошибка выставления на продажу');
+    }
+  };
+
+  const handleAddToPalette = async (colorId: string, targetRarity?: string) => {
+    const color = gallery.find(c => c.id === colorId);
+    if (!color) return;
+
+    try {
+      const targetPalette = targetRarity || color.rarity;
+      const currentPalette = palettes[targetPalette];
+      const emptySlotIndex = currentPalette.colors.findIndex(c => c === null);
+      
+      if (emptySlotIndex === -1) {
+        alert(`Все слоты в палитре ${targetPalette} заняты!`);
+        return;
+      }
+
+      if (color.rarity !== targetPalette) {
+        alert(`Цвет редкости ${color.rarity} нельзя добавить в палитру ${targetPalette}`);
+        return;
+      }
+
+      await addColorToPalette(colorId, targetPalette, emptySlotIndex);
+      closeColorInfo();
+      hapticFeedback.medium();
+    } catch (error) {
+      console.error('Ошибка добавления цвета в палитру:', error);
+      alert(error instanceof Error ? error.message : 'Ошибка добавления цвета');
+    }
+  };
+
+  if (gallery.length === 0) {
+    return (
+      <motion.div 
+        className="color-gallery"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h3>Галерея цветов (0)</h3>
+        <div className="empty-gallery">
+          <p>У вас пока нет цветов</p>
+          <p>Получите первый цвет или купите новые!</p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <>
+      <motion.div 
+        className="color-gallery"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h3>Галерея цветов ({gallery.length})</h3>
+        
+        <div className="gallery-grid">
+          {gallery.map((color) => {
+            return (
+              <motion.div
+                key={color.id}
+                className="color-item"
+                style={{
+                  backgroundColor: `rgb(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b})`,
+                  border: `2px solid ${ColorGenerator.getBorderColor(color.rarity)}`,
+                  position: 'relative',
+                  minHeight: '120px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  padding: '8px',
+                  borderRadius: '12px',
+                  cursor: 'pointer'
+                }}
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleColorClick(color.id)}
+              >
+                <div className="color-rarity-badge" style={{ 
+                  backgroundColor: ColorGenerator.getBorderColor(color.rarity),
+                  color: 'white',
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  textTransform: 'uppercase',
+                  alignSelf: 'flex-start',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                }}>
+                  {color.rarity}
+                </div>
+                
+                <div className="color-codes-container" style={{
+                  backgroundColor: 'rgba(0,0,0,0.7)',
+                  borderRadius: '8px',
+                  padding: '6px',
+                  fontSize: '0.8rem',
+                  color: 'white',
+                  textAlign: 'center',
+                  backdropFilter: 'blur(4px)'
+                }}>
+                  <div className="color-hex" style={{ fontWeight: '600', marginBottom: '2px' }}>
+                    {ColorGenerator.getHexCode(color.rgb)}
+                  </div>
+                  <div className="color-rgb" style={{ fontSize: '0.7rem', opacity: 0.9 }}>
+                    RGB({color.rgb.r}, {color.rgb.g}, {color.rgb.b})
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Color Info Modal */}
+      <AnimatePresence>
+        {showColorInfo && (() => {
+          const color = gallery.find(c => c.id === showColorInfo);
+          if (!color) return null;
+          
+          const currentPalette = palettes[color.rarity];
+          const availableSlots = currentPalette.colors.filter(c => c === null).length;
+          
+          return (
+            <motion.div
+              className="color-info-modal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.8)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000,
+                padding: '20px'
+              }}
+              onClick={closeColorInfo}
+            >
+              <motion.div
+                className="color-info-content"
+                initial={{ scale: 0.8, y: 50 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.8, y: 50 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  backgroundColor: 'var(--bg-primary)',
+                  borderRadius: '20px',
+                  padding: '24px',
+                  maxWidth: '400px',
+                  width: '100%',
+                  position: 'relative'
+                }}
+              >
+                <button
+                  onClick={closeColorInfo}
+                  style={{
+                    position: 'absolute',
+                    top: '16px',
+                    right: '16px',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    padding: '4px'
+                  }}
+                >
+                  <X size={20} />
+                </button>
+                
+                <div 
+                  className="color-preview"
+                  style={{
+                    width: '100%',
+                    height: '120px',
+                    backgroundColor: `rgb(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b})`,
+                    borderRadius: '12px',
+                    marginBottom: '20px',
+                    border: `3px solid ${ColorGenerator.getBorderColor(color.rarity)}`,
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <div style={{
+                    backgroundColor: 'rgba(0,0,0,0.7)',
+                    color: 'white',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    backdropFilter: 'blur(4px)'
+                  }}>
+                    <div style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '4px' }}>
+                      {ColorGenerator.getHexCode(color.rgb)}
+                    </div>
+                    <div style={{ fontSize: '0.9rem' }}>
+                      RGB({color.rgb.r}, {color.rgb.g}, {color.rgb.b})
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="color-details">
+                  <div className="detail-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Редкость:</span>
+                    <span 
+                      style={{ 
+                        color: ColorGenerator.getBorderColor(color.rarity),
+                        fontWeight: '600',
+                        textTransform: 'uppercase'
+                      }}
+                    >
+                      {color.rarity}
+                    </span>
+                  </div>
+                  
+                  <div className="detail-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Доступно слотов в палитре:</span>
+                    <span style={{ fontWeight: '600' }}>{availableSlots}/{currentPalette.maxSlots}</span>
+                  </div>
+                  
+                  {currentPalette.isStaking && (
+                    <div className="staking-notice" style={{
+                      backgroundColor: 'var(--warning-color)',
+                      color: 'white',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.9rem',
+                      marginBottom: '16px',
+                      textAlign: 'center'
+                    }}>
+                      🔄 Палитра {color.rarity} в процессе стейкинга
+                    </div>
+                  )}
+                </div>
+                
+                <div className="color-actions" style={{ display: 'flex', gap: '12px' }}>
+                  <motion.button
+                    className="add-to-palette-btn"
+                    onClick={() => handleAddToPalette(color.id)}
+                    disabled={availableSlots === 0 || currentPalette.isStaking}
+                    whileHover={availableSlots > 0 && !currentPalette.isStaking ? { scale: 1.05 } : {}}
+                    whileTap={availableSlots > 0 && !currentPalette.isStaking ? { scale: 0.95 } : {}}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      borderRadius: '12px',
+                      border: 'none',
+                      backgroundColor: availableSlots > 0 && !currentPalette.isStaking 
+                        ? ColorGenerator.getBorderColor(color.rarity) 
+                        : 'var(--bg-tertiary)',
+                      color: availableSlots > 0 && !currentPalette.isStaking ? 'white' : 'var(--text-muted)',
+                      fontWeight: '600',
+                      cursor: availableSlots > 0 && !currentPalette.isStaking ? 'pointer' : 'not-allowed',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <Plus size={16} />
+                    В палитру
+                  </motion.button>
+                  
+                  <motion.button
+                    className="sell-color-btn"
+                    onClick={() => {
+                      setShowSellModal(color.id);
+                      closeColorInfo();
+                    }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '12px',
+                      border: 'none',
+                      backgroundColor: 'var(--success-color)',
+                      color: 'white',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <DollarSign size={16} />
+                    Продать
+                  </motion.button>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
+      
+      {/* Sell Color Modal */}
+      <AnimatePresence>
+        {showSellModal && (() => {
+          const color = gallery.find(c => c.id === showSellModal);
+          if (!color) return null;
+          
+          return (
+            <motion.div
+              className="sell-modal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.8)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1001,
+                padding: '20px'
+              }}
+              onClick={() => setShowSellModal(null)}
+            >
+              <motion.div
+                className="sell-modal-content"
+                initial={{ scale: 0.8, y: 50 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.8, y: 50 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  backgroundColor: 'var(--bg-primary)',
+                  borderRadius: '20px',
+                  padding: '24px',
+                  maxWidth: '400px',
+                  width: '100%',
+                  position: 'relative'
+                }}
+              >
+                <button
+                  onClick={() => setShowSellModal(null)}
+                  style={{
+                    position: 'absolute',
+                    top: '16px',
+                    right: '16px',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    padding: '4px'
+                  }}
+                >
+                  <X size={20} />
+                </button>
+                
+                <h3 style={{ marginBottom: '20px', color: 'var(--text-primary)' }}>
+                  💰 Продать цвет
+                </h3>
+                
+                <div 
+                  className="color-preview-small"
+                  style={{
+                    width: '100%',
+                    height: '80px',
+                    backgroundColor: `rgb(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b})`,
+                    borderRadius: '12px',
+                    marginBottom: '20px',
+                    border: `3px solid ${ColorGenerator.getBorderColor(color.rarity)}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <div style={{
+                    backgroundColor: 'rgba(0,0,0,0.7)',
+                    color: 'white',
+                    padding: '6px 10px',
+                    borderRadius: '6px',
+                    fontSize: '0.9rem',
+                    fontWeight: '600'
+                  }}>
+                    {ColorGenerator.getHexCode(color.rgb)}
+                  </div>
+                </div>
+                
+                <div className="price-input-section">
+                  <label style={{ 
+                    display: 'block', 
+                    marginBottom: '8px', 
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.9rem'
+                  }}>
+                    Цена в Telegram Stars:
+                  </label>
+                  <input
+                    type="number"
+                    value={sellPrice}
+                    onChange={(e) => setSellPrice(e.target.value)}
+                    placeholder="Введите цену"
+                    min="1"
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '2px solid var(--border-color)',
+                      backgroundColor: 'var(--bg-secondary)',
+                      color: 'var(--text-primary)',
+                      fontSize: '1rem',
+                      marginBottom: '20px'
+                    }}
+                  />
+                </div>
+                
+                <div className="sell-actions" style={{ display: 'flex', gap: '12px' }}>
+                  <motion.button
+                    onClick={() => setShowSellModal(null)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      borderRadius: '12px',
+                      border: '2px solid var(--border-color)',
+                      backgroundColor: 'var(--bg-secondary)',
+                      color: 'var(--text-primary)',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Отмена
+                  </motion.button>
+                  
+                  <motion.button
+                    onClick={() => {
+                      const price = parseInt(sellPrice);
+                      if (price && price > 0) {
+                        handleSellColor(color.id, price);
+                      } else {
+                        alert('Введите корректную цену');
+                      }
+                    }}
+                    disabled={!sellPrice || parseInt(sellPrice) <= 0}
+                    whileHover={sellPrice && parseInt(sellPrice) > 0 ? { scale: 1.05 } : {}}
+                    whileTap={sellPrice && parseInt(sellPrice) > 0 ? { scale: 0.95 } : {}}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      borderRadius: '12px',
+                      border: 'none',
+                      backgroundColor: sellPrice && parseInt(sellPrice) > 0 
+                        ? 'var(--success-color)' 
+                        : 'var(--bg-tertiary)',
+                      color: sellPrice && parseInt(sellPrice) > 0 ? 'white' : 'var(--text-muted)',
+                      fontWeight: '600',
+                      cursor: sellPrice && parseInt(sellPrice) > 0 ? 'pointer' : 'not-allowed',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <ShoppingCart size={16} />
+                    Выставить
+                  </motion.button>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
+    </>
+  );
+};

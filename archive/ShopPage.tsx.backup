@@ -1,0 +1,220 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useGameStore } from '@/store/gameStore';
+import { useTelegram } from '@/hooks/useTelegram';
+import { ShopContent } from '@/components/ShopContent';
+import { P2PMarketplace } from '@/components/P2PMarketplace';
+import { ShoppingBag, Star, Users, Store } from 'lucide-react';
+
+type ShopTab = 'buy' | 'marketplace' | 'p2p';
+
+export const ShopPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<ShopTab>('buy');
+  const { flowTokens, getAvailableForPurchase } = useGameStore();
+  const { colorScheme, hapticFeedback } = useTelegram();
+
+  const tabs = [
+    {
+      id: 'buy' as ShopTab,
+      label: 'Покупка',
+      icon: ShoppingBag,
+      color: '#e17055'
+    },
+    {
+      id: 'marketplace' as ShopTab,
+      label: 'Маркетплейс',
+      icon: Store,
+      color: '#00b894'
+    },
+    {
+      id: 'p2p' as ShopTab,
+      label: 'P2P',
+      icon: Users,
+      color: '#6c5ce7'
+    }
+  ];
+
+  const handleTabChange = (tabId: ShopTab) => {
+    setActiveTab(tabId);
+    hapticFeedback.light();
+  };
+
+  const availableRarities = getAvailableForPurchase();
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.5 }
+    }
+  };
+
+  return (
+    <div className={`shop-page theme-${colorScheme}`}>
+      {/* Header */}
+      <motion.header 
+        className="page-header"
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="header-content">
+          <h1 className="page-title">
+            <ShoppingBag size={24} />
+            Магазин
+          </h1>
+          <div className="currency-display">
+            <div className="currency-item">
+              <Star size={16} />
+              <span>15</span>
+            </div>
+          </div>
+        </div>
+      </motion.header>
+
+      {/* Tab Navigation */}
+      <motion.div
+        className="tab-navigation"
+        initial={{ y: -10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1, duration: 0.5 }}
+      >
+        <div className="tab-container">
+          {tabs.map((tab) => {
+            const IconComponent = tab.icon;
+            const isActive = activeTab === tab.id;
+            
+            return (
+              <motion.button
+                key={tab.id}
+                className={`tab-button ${isActive ? 'active' : ''}`}
+                onClick={() => handleTabChange(tab.id)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                style={{
+                  borderColor: isActive ? tab.color : 'transparent',
+                  backgroundColor: isActive ? `${tab.color}20` : 'transparent'
+                }}
+              >
+                <motion.div
+                  className="tab-content"
+                  animate={{
+                    color: isActive ? tab.color : '#6c757d'
+                  }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <IconComponent size={18} />
+                  <span>{tab.label}</span>
+                  
+                  {isActive && (
+                    <motion.div
+                      className="tab-indicator"
+                      layoutId="shop-tab-indicator"
+                      style={{ backgroundColor: tab.color }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  )}
+                </motion.div>
+              </motion.button>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Tab Content */}
+      <motion.div
+        className="shop-content"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <AnimatePresence mode="wait">
+          {activeTab === 'buy' && (
+            <motion.div
+              key="buy"
+              className="tab-content-panel"
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              <div className="content-section">
+                <h3 className="section-title">
+                  <ShoppingBag size={20} />
+                  Покупка цветов
+                </h3>
+                <p className="section-description">
+                  Приобретайте новые цвета за Telegram Stars. Доступно {availableRarities.length} редкостей.
+                </p>
+                <ShopContent />
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'marketplace' && (
+            <motion.div
+              key="marketplace"
+              className="tab-content-panel"
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              <div className="content-section">
+                <h3 className="section-title">
+                  <Store size={20} />
+                  Маркетплейс
+                </h3>
+                <p className="section-description">
+                  Официальные предложения от разработчиков и партнёров.
+                </p>
+                
+                <div className="marketplace-coming-soon">
+                  <Store size={64} />
+                  <h4>Маркетплейс скоро!</h4>
+                  <p>Мы работаем над официальным маркетплейсом.</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'p2p' && (
+            <motion.div
+              key="p2p"
+              className="tab-content-panel"
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              <div className="content-section">
+                <h3 className="section-title">
+                  <Users size={20} />
+                  P2P торговля
+                </h3>
+                <p className="section-description">
+                  Покупайте и продавайте уникальные цвета другим игрокам.
+                </p>
+                
+                <P2PMarketplace />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </div>
+  );
+};

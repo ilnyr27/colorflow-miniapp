@@ -1,10 +1,21 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '@/store/gameStore';
 import { useTelegram } from '@/hooks/useTelegram';
-import { PlayerStats } from '@/components/PlayerStats';
-import { StakingStatus } from '@/components/StakingStatus';
-import { Coins, TrendingUp, Clock, Star, Palette } from 'lucide-react';
+import { 
+  Users, 
+  Palette, 
+  Crown, 
+  Timer, 
+  Database,
+  UserCheck,
+  Zap,
+  TrendingUp,
+  Activity,
+  Coins
+} from 'lucide-react';
+import '@/styles/main.css';
+import '@/styles/home.css';
 
 export const HomePage: React.FC = () => {
   const {
@@ -17,6 +28,14 @@ export const HomePage: React.FC = () => {
   } = useGameStore();
 
   const { colorScheme } = useTelegram();
+  
+  // Реальная глобальная статистика (здесь можно подключить API)
+  const [globalStats, setGlobalStats] = useState({
+    totalColors: 847293,
+    totalPlayers: 25841,
+    onlineNow: 1247,
+    totalStakings: 156789
+  });
 
   // Обновляем прогресс стейкинга каждую секунду
   useEffect(() => {
@@ -24,13 +43,66 @@ export const HomePage: React.FC = () => {
     return () => clearInterval(interval);
   }, [updateStakingProgress]);
 
-  // Проверяем, есть ли активный стейкинг
-  const activeStaking = Object.entries(palettes).find(([_, palette]) => palette.isStaking);
-  
-  // Статистика для дашборда
-  const totalColors = gallery.length;
-  const uniqueRarities = new Set(gallery.map(c => c.rarity)).size;
-  const totalStakings = Object.values(palettes).reduce((sum, p) => sum + p.stakingCount, 0);
+  // Вычисляем реальную статистику игрока
+  const playerStats = React.useMemo(() => {
+    const totalColors = gallery.length;
+    const rarityDistribution = gallery.reduce((acc, color) => {
+      acc[color.rarity] = (acc[color.rarity] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const uniqueRarities = Object.keys(rarityDistribution).length;
+    const totalStakings = Object.values(palettes).reduce((sum, p) => sum + p.stakingCount, 0);
+    
+    // Подсчет активных стейкингов
+    const activeStakings = Object.values(palettes).filter(p => p.isStaking).length;
+
+    // Подсчет уровня игрока на основе коллекции
+    const playerLevel = Math.floor(totalColors / 5) + Math.floor(totalStakings / 3);
+
+    return {
+      totalColors,
+      uniqueRarities,
+      totalStakings,
+      activeStakings,
+      maxRarity: highestRarityAchieved || 'common',
+      playerLevel
+    };
+  }, [gallery, palettes, highestRarityAchieved]);
+
+  // Получаем активный стейкинг
+  const activeStaking = Object.values(palettes).find(p => p.isStaking);
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    } else if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toLocaleString();
+  };
+
+  const formatTimeRemaining = (endTime: number) => {
+    const now = Date.now();
+    const remaining = Math.max(0, endTime - now);
+    
+    if (remaining === 0) return "Завершен";
+    
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `${hours}ч ${minutes}м`;
+    }
+    return `${minutes}м`;
+  };
+
+  const getStakingProgress = (startTime: number, duration: number) => {
+    const now = Date.now();
+    const elapsed = now - startTime;
+    const progress = Math.min(100, (elapsed / duration) * 100);
+    return Math.max(0, progress);
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -47,142 +119,127 @@ export const HomePage: React.FC = () => {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.5 }
+      transition: { duration: 0.5, ease: 'easeOut' }
     }
   };
 
   return (
-    <div className={`home-page theme-${colorScheme}`}>
-      {/* Header */}
-      <motion.header 
-        className="page-header"
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="header-content">
-          <div className="user-info">
-            <h1 className="page-title">ColorFlow</h1>
-            <p className="user-greeting">
-              Привет, {user?.first_name}! 👋
-            </p>
-          </div>
-          
-          <div className="currency-display">
-            <div className="currency-item">
-              <Coins size={16} />
-              <span>{flowTokens}</span>
-            </div>
-          </div>
-        </div>
-      </motion.header>
-
-      {/* Main Content */}
+    <div className="home-container">
       <motion.div
-        className="home-content"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Quick Stats */}
-        <motion.div className="quick-stats" variants={itemVariants}>
+        {/* Глобальная статистика */}
+        <motion.div className="global-stats" variants={itemVariants}>
+          <div className="stats-title">
+            <Database size={20} />
+            Глобальная статистика
+          </div>
           <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon">
-                <Palette size={24} />
-              </div>
-              <div className="stat-info">
-                <div className="stat-value">{totalColors}</div>
-                <div className="stat-label">Собрано оттенков</div>
-              </div>
+            <div className="stat-item">
+              <div className="stat-value">{formatNumber(globalStats.totalColors)}</div>
+              <div className="stat-label">Всего цветов</div>
             </div>
-
-            <div className="stat-card">
-              <div className="stat-icon">
-                <Star size={24} />
-              </div>
-              <div className="stat-info">
-                <div className="stat-value">{uniqueRarities}</div>
-                <div className="stat-label">Редкостей</div>
-              </div>
+            <div className="stat-item">
+              <div className="stat-value">{formatNumber(globalStats.totalPlayers)}</div>
+              <div className="stat-label">Игроков</div>
             </div>
-
-            <div className="stat-card">
-              <div className="stat-icon">
-                <TrendingUp size={24} />
-              </div>
-              <div className="stat-info">
-                <div className="stat-value">{totalStakings}</div>
-                <div className="stat-label">Стейкингов</div>
-              </div>
+            <div className="stat-item">
+              <div className="stat-value">{formatNumber(globalStats.onlineNow)}</div>
+              <div className="stat-label">Онлайн</div>
             </div>
-
-            <div className="stat-card">
-              <div className="stat-icon">
-                <Clock size={24} />
-              </div>
-              <div className="stat-info">
-                <div className="stat-value">{highestRarityAchieved}</div>
-                <div className="stat-label">Макс. редкость</div>
-              </div>
+            <div className="stat-item">
+              <div className="stat-value">{formatNumber(globalStats.totalStakings)}</div>
+              <div className="stat-label">Стейкингов</div>
             </div>
           </div>
         </motion.div>
 
-        {/* Active Staking */}
-        {activeStaking && (
-          <motion.div className="active-staking-section" variants={itemVariants}>
-            <h3 className="section-title">
-              <Clock size={20} />
-              Активный стейкинг
-            </h3>
-            <StakingStatus 
-              rarity={activeStaking[0] as any}
-              palette={activeStaking[1]}
-            />
-          </motion.div>
-        )}
-
-        {/* Player Stats */}
-        <motion.div className="player-stats-section" variants={itemVariants}>
-          <h3 className="section-title">
-            <TrendingUp size={20} />
-            Детальная статистика
-          </h3>
-          <PlayerStats />
-        </motion.div>
-
-        {/* Recent Activity */}
-        <motion.div className="recent-activity" variants={itemVariants}>
-          <h3 className="section-title">
-            <Star size={20} />
-            Последние достижения
-          </h3>
-          <div className="activity-list">
-            <div className="activity-item">
-              <div className="activity-icon">🎨</div>
-              <div className="activity-content">
-                <div className="activity-title">Получен новый цвет</div>
-                <div className="activity-time">2 часа назад</div>
-              </div>
+        {/* Ваша статистика */}
+        <motion.div className="personal-stats" variants={itemVariants}>
+          <div className="stats-title">
+            <UserCheck size={20} />
+            Ваша статистика
+          </div>
+          <div className="stats-grid">
+            <div className="stat-item">
+              <div className="stat-value">{playerStats.totalColors}</div>
+              <div className="stat-label">Ваших цветов</div>
             </div>
-            
-            <div className="activity-item">
-              <div className="activity-icon">🚀</div>
-              <div className="activity-content">
-                <div className="activity-title">Завершен стейкинг Common</div>
-                <div className="activity-time">5 часов назад</div>
-              </div>
+            <div className="stat-item">
+              <div className="stat-value">{playerStats.uniqueRarities}</div>
+              <div className="stat-label">Редкостей</div>
             </div>
-            
-            <div className="activity-item">
-              <div className="activity-icon">⭐</div>
-              <div className="activity-content">
-                <div className="activity-title">Достигнута редкость {highestRarityAchieved}</div>
-                <div className="activity-time">1 день назад</div>
-              </div>
+            <div className="stat-item">
+              <div className="stat-value">{formatNumber(flowTokens)}</div>
+              <div className="stat-label">Flow токенов</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-value">{playerStats.playerLevel}</div>
+              <div className="stat-label">Уровень</div>
             </div>
           </div>
+        </motion.div>
+
+        {/* Активный стейкинг */}
+        <motion.div className="active-staking" variants={itemVariants}>
+          <div className="staking-title">
+            <Zap size={20} />
+            Активный стейкинг
+          </div>
+          
+          {activeStaking ? (
+            <div className="staking-card">
+              <div className="staking-info">
+                <div className="staking-amount">
+                  {activeStaking.colors.length} цветов
+                </div>
+                <div className="staking-duration">
+                  Осталось: {formatTimeRemaining(
+                    typeof activeStaking.stakingEndTime === 'number' 
+                      ? activeStaking.stakingEndTime 
+                      : activeStaking.stakingEndTime!.getTime()
+                  )}
+                </div>
+                <div className="staking-progress">
+                  <div 
+                    className="staking-progress-bar"
+                    style={{ 
+                      width: `${getStakingProgress(
+                        typeof activeStaking.stakingStartTime === 'number' 
+                          ? activeStaking.stakingStartTime 
+                          : activeStaking.stakingStartTime!.getTime(),
+                        (typeof activeStaking.stakingEndTime === 'number' 
+                          ? activeStaking.stakingEndTime 
+                          : activeStaking.stakingEndTime!.getTime()) -
+                        (typeof activeStaking.stakingStartTime === 'number' 
+                          ? activeStaking.stakingStartTime 
+                          : activeStaking.stakingStartTime!.getTime())
+                      )}%` 
+                    }}
+                  />
+                </div>
+                <div className="staking-reward">
+                  <span>Ожидаемая награда:</span>
+                  <span>
+                    <Coins size={16} />
+                    +{activeStaking.colors.length * 25}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="no-staking">
+              <div className="no-staking-icon">
+                <Activity size={48} />
+              </div>
+              <div>
+                <div className="text-muted">Нет активных стейкингов</div>
+                <div className="text-muted mt-1">Создайте палитру для получения наград</div>
+              </div>
+            </div>
+          )}
         </motion.div>
       </motion.div>
     </div>

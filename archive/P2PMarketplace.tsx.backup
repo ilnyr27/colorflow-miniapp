@@ -1,0 +1,354 @@
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useGameStore } from '@/store/gameStore';
+import { useTelegram } from '@/hooks/useTelegram';
+import { ColorGenerator } from '@/utils/colorGenerator';
+import { RARITY_COLORS } from '@/config/game';
+import { ColorRarity } from '@/types/game';
+import { 
+  Filter, 
+  TrendingUp, 
+  TrendingDown, 
+  Star, 
+  User, 
+  ShoppingCart,
+  DollarSign,
+  RefreshCw
+} from 'lucide-react';
+
+interface P2PListing {
+  id: string;
+  sellerId: string;
+  sellerName: string;
+  sellerRating: number;
+  color: {
+    hex: string;
+    rgb: { r: number; g: number; b: number };
+    rarity: ColorRarity;
+  };
+  price: number;
+  originalPrice?: number;
+  createdAt: Date;
+}
+
+type SortType = 'price_asc' | 'price_desc' | 'newest' | 'oldest';
+type FilterRarity = ColorRarity | 'all';
+
+export const P2PMarketplace: React.FC = () => {
+  const { hapticFeedback } = useTelegram();
+  const [activeTab, setActiveTab] = useState<'buy' | 'sell'>('buy');
+  const [sortBy, setSortBy] = useState<SortType>('price_asc');
+  const [filterRarity, setFilterRarity] = useState<FilterRarity>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Моковые данные для демонстрации
+  const mockListings: P2PListing[] = [
+    {
+      id: '1',
+      sellerId: 'user1',
+      sellerName: 'ColorMaster',
+      sellerRating: 4.8,
+      color: {
+        hex: '#FF6B6B',
+        rgb: { r: 255, g: 107, b: 107 },
+        rarity: 'rare'
+      },
+      price: 35,
+      originalPrice: 40,
+      createdAt: new Date(Date.now() - 3600000)
+    },
+    {
+      id: '2',
+      sellerId: 'user2',
+      sellerName: 'PaletteKing',
+      sellerRating: 4.9,
+      color: {
+        hex: '#4ECDC4',
+        rgb: { r: 78, g: 205, b: 196 },
+        rarity: 'mythical'
+      },
+      price: 85,
+      originalPrice: 100,
+      createdAt: new Date(Date.now() - 7200000)
+    },
+    {
+      id: '3',
+      sellerId: 'user3',
+      sellerName: 'ChromaCollector',
+      sellerRating: 4.7,
+      color: {
+        hex: '#45B7D1',
+        rgb: { r: 69, g: 183, b: 209 },
+        rarity: 'uncommon'
+      },
+      price: 12,
+      originalPrice: 15,
+      createdAt: new Date(Date.now() - 1800000)
+    },
+    {
+      id: '4',
+      sellerId: 'user4',
+      sellerName: 'RainbowTrader',
+      sellerRating: 4.6,
+      color: {
+        hex: '#96CEB4',
+        rgb: { r: 150, g: 206, b: 180 },
+        rarity: 'common'
+      },
+      price: 8,
+      createdAt: new Date(Date.now() - 900000)
+    }
+  ];
+
+  const filteredAndSortedListings = useMemo(() => {
+    let filtered = mockListings;
+
+    // Фильтр по редкости
+    if (filterRarity !== 'all') {
+      filtered = filtered.filter(listing => listing.color.rarity === filterRarity);
+    }
+
+    // Поиск по имени продавца или цвету
+    if (searchQuery) {
+      filtered = filtered.filter(listing => 
+        listing.sellerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        listing.color.hex.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Сортировка
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'price_asc':
+          return a.price - b.price;
+        case 'price_desc':
+          return b.price - a.price;
+        case 'newest':
+          return b.createdAt.getTime() - a.createdAt.getTime();
+        case 'oldest':
+          return a.createdAt.getTime() - b.createdAt.getTime();
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [mockListings, filterRarity, searchQuery, sortBy]);
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    
+    if (diffMins < 60) {
+      return `${diffMins} мин назад`;
+    } else if (diffHours < 24) {
+      return `${diffHours} ч назад`;
+    } else {
+      return `${Math.floor(diffHours / 24)} д назад`;
+    }
+  };
+
+  return (
+    <div className="p2p-marketplace">
+      {/* Tab Switcher */}
+      <div className="p2p-tabs">
+        <motion.button
+          className={`p2p-tab ${activeTab === 'buy' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('buy');
+            hapticFeedback.light();
+          }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <ShoppingCart size={18} />
+          Купить
+        </motion.button>
+        
+        <motion.button
+          className={`p2p-tab ${activeTab === 'sell' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('sell');
+            hapticFeedback.light();
+          }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <DollarSign size={18} />
+          Продать
+        </motion.button>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {activeTab === 'buy' && (
+          <motion.div
+            key="buy"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Filters and Search */}
+            <div className="p2p-controls">
+              <div className="search-section">
+                <input
+                  type="text"
+                  placeholder="Поиск по продавцу или цвету..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="search-input"
+                />
+              </div>
+              
+              <div className="filter-section">
+                <div className="filter-group">
+                  <label>Редкость:</label>
+                  <select
+                    value={filterRarity}
+                    onChange={(e) => setFilterRarity(e.target.value as FilterRarity)}
+                    className="filter-select"
+                  >
+                    <option value="all">Все</option>
+                    <option value="common">Common</option>
+                    <option value="uncommon">Uncommon</option>
+                    <option value="rare">Rare</option>
+                    <option value="mythical">Mythical</option>
+                    <option value="legendary">Legendary</option>
+                  </select>
+                </div>
+                
+                <div className="filter-group">
+                  <label>Сортировка:</label>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortType)}
+                    className="filter-select"
+                  >
+                    <option value="price_asc">Цена ↑</option>
+                    <option value="price_desc">Цена ↓</option>
+                    <option value="newest">Новые</option>
+                    <option value="oldest">Старые</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Listings */}
+            <div className="p2p-listings">
+              {filteredAndSortedListings.length === 0 ? (
+                <div className="no-listings">
+                  <RefreshCw size={48} />
+                  <h3>Нет подходящих предложений</h3>
+                  <p>Попробуйте изменить фильтры или поищите что-то другое</p>
+                </div>
+              ) : (
+                filteredAndSortedListings.map((listing) => (
+                  <motion.div
+                    key={listing.id}
+                    className="p2p-listing-card"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="listing-color-preview">
+                      <div
+                        className="color-swatch"
+                        style={{
+                          backgroundColor: listing.color.hex,
+                          border: `3px solid ${RARITY_COLORS[listing.color.rarity]}`
+                        }}
+                      />
+                      <div className="color-info">
+                        <div className="color-hex">{listing.color.hex}</div>
+                        <div 
+                          className="color-rarity"
+                          style={{ color: RARITY_COLORS[listing.color.rarity] }}
+                        >
+                          {listing.color.rarity.toUpperCase()}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="listing-details">
+                      <div className="seller-info">
+                        <div className="seller-name">
+                          <User size={14} />
+                          {listing.sellerName}
+                        </div>
+                        <div className="seller-rating">
+                          <Star size={12} fill="currentColor" />
+                          {listing.sellerRating}
+                        </div>
+                      </div>
+                      
+                      <div className="listing-meta">
+                        <div className="listing-time">{formatTimeAgo(listing.createdAt)}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="listing-price-section">
+                      <div className="price-info">
+                        <div className="current-price">
+                          <Star size={16} />
+                          <span>{listing.price}</span>
+                        </div>
+                        {listing.originalPrice && (
+                          <div className="original-price">
+                            <span>{listing.originalPrice}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <motion.button
+                        className="buy-btn"
+                        style={{ backgroundColor: RARITY_COLORS[listing.color.rarity] }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          hapticFeedback.medium();
+                          alert(`Покупка цвета ${listing.color.hex} за ${listing.price} Stars`);
+                        }}
+                      >
+                        Купить
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'sell' && (
+          <motion.div
+            key="sell"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="sell-section"
+          >
+            <div className="sell-info">
+              <h3>Продажа цветов</h3>
+              <p>
+                Для продажи цветов перейдите в галерею, выберите цвет и нажмите "Продать".
+                Ваши активные лоты будут отображаться здесь.
+              </p>
+            </div>
+            
+            <div className="active-listings">
+              <h4>Ваши активные лоты:</h4>
+              <div className="empty-listings">
+                <DollarSign size={48} />
+                <p>У вас пока нет активных лотов</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};

@@ -20,19 +20,22 @@ export interface RGB {
 export interface Color {
   id: string;
   rarity: ColorRarity;
-  rgb: RGB;
-  stakingCount: number;
-  ownedSince: Date;
-  name?: string; // Пользовательское имя
+  hex: string;
+  name: string;
+  dateObtained: string;
+  stakingCount?: number;
+  ownedSince?: Date;
 }
 
 export interface Palette {
+  id?: string;
   colors: (Color | null)[];
+  rarity?: ColorRarity;
   stakingCount: number;
   maxSlots: number;
   isStaking: boolean;
-  stakingEndTime: Date | null;
-  stakingStart: Date | null;
+  stakingEndTime: Date | number | null;
+  stakingStartTime: Date | number | null;
 }
 
 export interface GameState {

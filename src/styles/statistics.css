@@ -1,0 +1,359 @@
+/* ===== STATISTICS PAGE STYLES ===== */
+
+.statistics-page {
+  min-height: 100vh;
+  padding: 1rem;
+  padding-bottom: 6rem;
+  background: linear-gradient(135deg, 
+    var(--bg-color) 0%, 
+    var(--bg-secondary) 100%);
+}
+
+.statistics-header {
+  background: var(--statistics-gradient);
+  color: white;
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.statistics-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
+}
+
+.statistics-header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.statistics-header p {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.statistics-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 2rem 0;
+}
+
+.statistics-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.statistics-header p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* ===== STATS SECTIONS ===== */
+
+.stats-section {
+  background: var(--card-bg);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stats-section h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+/* ===== STATS GRID ===== */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  background: var(--bg-color);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.global {
+  border-left: 3px solid var(--accent-color);
+}
+
+.stat-icon {
+  flex-shrink: 0;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: rgba(108, 91, 123, 0.1);
+}
+
+.stat-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-info h3 {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+/* ===== RARITY STATS ===== */
+
+.rarity-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rarity-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: var(--bg-color);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.rarity-name {
+  font-weight: 600;
+  color: var(--text-color);
+  min-width: 80px;
+  font-size: 0.9rem;
+}
+
+.rarity-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.rarity-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #6C5B7B, #88B04B);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.rarity-count {
+  font-weight: 600;
+  color: var(--text-color);
+  min-width: 30px;
+  text-align: right;
+  font-size: 0.9rem;
+}
+
+/* ===== ACHIEVEMENTS ===== */
+
+.achievements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-color);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.achievement-item.completed {
+  background: linear-gradient(135deg, 
+    rgba(0, 184, 148, 0.1), 
+    rgba(0, 184, 148, 0.05));
+  border-color: rgba(0, 184, 148, 0.3);
+}
+
+.achievement-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6C5B7B, #88B04B);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.achievement-item.completed .achievement-icon {
+  background: linear-gradient(135deg, #00b894, #00cec9);
+}
+
+.achievement-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.achievement-info h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.25rem;
+}
+
+.achievement-info p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.achievement-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: var(--progress, 0%);
+  background: linear-gradient(90deg, #6C5B7B, #88B04B);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.progress-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.no-achievements {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+@media (max-width: 480px) {
+  .statistics-page {
+    padding: 0.75rem;
+    padding-bottom: 6rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+  
+  .stat-card {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+  
+  .stat-value {
+    font-size: 1.1rem;
+  }
+  
+  .rarity-stat-item {
+    gap: 0.75rem;
+    padding: 0.5rem;
+  }
+  
+  .rarity-name {
+    min-width: 70px;
+    font-size: 0.8rem;
+  }
+  
+  .achievement-item {
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  
+  .achievement-icon {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+/* ===== DARK THEME ===== */
+
+[data-theme="dark"] .statistics-page {
+  background: linear-gradient(135deg, 
+    var(--tg-theme-bg-color, #1a1a1a) 0%, 
+    var(--tg-theme-secondary-bg-color, #2a2a2a) 100%);
+}
+
+[data-theme="dark"] .stats-section {
+  background: var(--tg-theme-secondary-bg-color, #2a2a2a);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .rarity-stat-item,
+[data-theme="dark"] .achievement-item {
+  background: var(--tg-theme-bg-color, #1a1a1a);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .rarity-bar {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .progress-bar {
+  background: rgba(255, 255, 255, 0.1);
+}

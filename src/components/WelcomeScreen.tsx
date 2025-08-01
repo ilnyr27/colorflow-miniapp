@@ -17,8 +17,10 @@ export const WelcomeScreen: React.FC = () => {
     
     try {
       await createFreeStarterColor();
+      hapticFeedback.success();
     } catch (error) {
       console.error('Ошибка получения стартового цвета:', error);
+      hapticFeedback.error();
     } finally {
       setIsLoading(false);
     }

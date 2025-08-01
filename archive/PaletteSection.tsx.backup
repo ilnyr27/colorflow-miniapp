@@ -1,0 +1,524 @@
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useGameStore } from '@/store/gameStore';
+import { useTelegram } from '@/hooks/useTelegram';
+import { ColorGenerator } from '@/utils/colorGenerator';
+import { GAME_CONFIG, RARITY_COLORS } from '@/config/game';
+import { ColorRarity } from '@/types/game';
+import { Clock, TrendingUp, Zap, RotateCcw, Trash2 } from 'lucide-react';
+
+export const PaletteSection: React.FC = () => {
+  const { 
+    palettes, 
+    activePaletteTab, 
+    setActivePaletteTab,
+    removeColorFromPalette, 
+    startStaking,
+    upgradeColors,
+    updateStakingProgress,
+    completeStaking,
+    cancelStaking
+  } = useGameStore();
+  const { hapticFeedback } = useTelegram();
+  const currentPalette = palettes[activePaletteTab];
+  const [stakingTimer, setStakingTimer] = useState<string>('');
+
+  // Обновляем таймер стейкинга
+  useEffect(() => {
+    const interval = setInterval(() => {
+      updateStakingProgress();
+      
+      // Обновляем таймер для текущей палитры
+      if (currentPalette.isStaking && currentPalette.stakingEndTime) {
+        const now = Date.now();
+        const endTime = new Date(currentPalette.stakingEndTime).getTime();
+        const remaining = endTime - now;
+        
+        if (remaining <= 0) {
+          setStakingTimer('Готово!');
+        } else {
+          const hours = Math.floor(remaining / (1000 * 60 * 60));
+          const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+          setStakingTimer(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+        }
+      } else {
+        setStakingTimer('');
+      }
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [currentPalette.isStaking, currentPalette.stakingEndTime, updateStakingProgress]);
+
+  const handleRarityChange = (rarity: ColorRarity) => {
+    setActivePaletteTab(rarity);
+    hapticFeedback.light();
+  };
+
+  const handleSlotClick = async (slotIndex: number) => {
+    const color = currentPalette.colors[slotIndex];
+    if (!color) return;
+
+    if (currentPalette.isStaking) {
+      alert('Нельзя изменять палитру во время стейкинга');
+      return;
+    }
+
+    try {
+      await removeColorFromPalette(activePaletteTab, slotIndex);
+      hapticFeedback.light();
+    } catch (error) {
+      console.error('Ошибка удаления цвета:', error);
+      alert(error instanceof Error ? error.message : 'Ошибка удаления цвета');
+    }
+  };
+
+  const handleStartStaking = async () => {
+    try {
+      await startStaking(activePaletteTab);
+      hapticFeedback.medium();
+    } catch (error) {
+      console.error('Ошибка запуска стейкинга:', error);
+      alert(error instanceof Error ? error.message : 'Ошибка запуска стейкинга');
+    }
+  };
+
+  const handleUpgrade = async () => {
+    try {
+      await upgradeColors(activePaletteTab);
+      hapticFeedback.heavy();
+    } catch (error) {
+      console.error('Ошибка улучшения:', error);
+      alert(error instanceof Error ? error.message : 'Ошибка улучшения');
+    }
+  };
+
+  const handleCompleteStaking = async () => {
+    try {
+      await completeStaking(activePaletteTab);
+      hapticFeedback.heavy();
+    } catch (error) {
+      console.error('Ошибка завершения стейкинга:', error);
+      alert(error instanceof Error ? error.message : 'Ошибка завершения стейкинга');
+    }
+  };
+
+  const handleCancelStaking = async () => {
+    if (!confirm('Вы уверены, что хотите отменить стейкинг? Прогресс будет потерян.')) {
+      return;
+    }
+    
+    try {
+      await cancelStaking(activePaletteTab);
+      hapticFeedback.medium();
+    } catch (error) {
+      console.error('Ошибка отмены стейкинга:', error);
+      alert(error instanceof Error ? error.message : 'Ошибка отмены стейкинга');
+    }
+  };
+
+  const filledSlots = currentPalette.colors.filter(c => c !== null).length;
+  const canStartStaking = filledSlots > 0 && !currentPalette.isStaking;
+  const canUpgrade = filledSlots === currentPalette.maxSlots && !currentPalette.isStaking;
+  const canCompleteStaking = currentPalette.isStaking && stakingTimer === 'Готово!';
+
+  return (
+    <motion.div 
+      className="palette-section"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* Global Staking Info */}
+      {(() => {
+        const activeStakings = Object.entries(palettes).filter(([_, palette]) => palette.isStaking);
+        
+        if (activeStakings.length > 0) {
+          return (
+            <motion.div 
+              className="global-staking-info"
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              style={{
+                background: 'linear-gradient(135deg, var(--warning-color), #f39c12)',
+                color: 'white',
+                padding: '16px',
+                borderRadius: '12px',
+                marginBottom: '20px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+              }}
+            >
+              <div className="staking-header" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <Clock size={20} />
+                <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Активные стейкинги</h4>
+              </div>
+              
+              <div className="active-stakings-grid" style={{ display: 'grid', gap: '8px' }}>
+                {activeStakings.map(([rarity, palette]) => {
+                  const timeLeft = palette.stakingEndTime 
+                    ? Math.max(0, new Date(palette.stakingEndTime).getTime() - Date.now())
+                    : 0;
+                  const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                  const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                  const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                  const timeString = timeLeft > 0 
+                    ? `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+                    : 'Готово!';
+                  
+                  return (
+                    <div 
+                      key={rarity}
+                      className="staking-item"
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '8px 12px',
+                        background: 'rgba(255,255,255,0.2)',
+                        borderRadius: '8px',
+                        backdropFilter: 'blur(4px)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div 
+                          style={{
+                            width: '12px',
+                            height: '12px',
+                            borderRadius: '50%',
+                            backgroundColor: RARITY_COLORS[rarity as ColorRarity]
+                          }}
+                        />
+                        <span style={{ fontWeight: '500' }}>
+                          {rarity.charAt(0).toUpperCase() + rarity.slice(1)}
+                        </span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{timeString}</span>
+                        {timeLeft <= 0 && (
+                          <Zap size={16} style={{ color: '#f1c40f' }} />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          );
+        }
+        return null;
+      })()}
+      
+      {/* Rarity Selector */}
+      <div className="rarity-selector">
+        <h3>Палитры цветов:</h3>
+        <div className="rarity-tabs">
+          {GAME_CONFIG.RARITY_LEVELS.map((rarity) => {
+            const isActive = activePaletteTab === rarity;
+            const palette = palettes[rarity];
+            const filledCount = palette.colors.filter(c => c !== null).length;
+            const progress = palette.isStaking && palette.stakingEndTime 
+              ? Math.max(0, Math.min(100, ((Date.now() - new Date(palette.stakingStartTime || 0).getTime()) / 
+                  (new Date(palette.stakingEndTime).getTime() - new Date(palette.stakingStartTime || 0).getTime())) * 100))
+              : 0;
+            
+            return (
+              <motion.button
+                key={rarity}
+                className={`rarity-tab ${isActive ? 'active' : ''} ${palette.isStaking ? 'staking' : ''}`}
+                onClick={() => handleRarityChange(rarity)}
+                style={{
+                  borderColor: isActive ? RARITY_COLORS[rarity] : 'var(--border-color)',
+                  backgroundColor: isActive ? `${RARITY_COLORS[rarity]}20` : 'var(--bg-secondary)',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+                whileHover={!palette.isStaking || isActive ? { scale: 1.02 } : {}}
+                whileTap={!palette.isStaking || isActive ? { scale: 0.98 } : {}}
+              >
+                {palette.isStaking && (
+                  <div 
+                    className="staking-progress"
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      height: '3px',
+                      backgroundColor: RARITY_COLORS[rarity],
+                      width: `${progress}%`,
+                      transition: 'width 1s ease'
+                    }}
+                  />
+                )}
+                
+                <div className="rarity-tab-content">
+                  <div 
+                    className="rarity-indicator"
+                    style={{ backgroundColor: RARITY_COLORS[rarity] }}
+                  />
+                  <span className="rarity-name">
+                    {rarity === 'uncommon' ? 'Uncomm.' : 
+                     rarity === 'mythical' ? 'Mythic' :
+                     rarity === 'legendary' ? 'Legend.' :
+                     rarity === 'ascendant' ? 'Ascend.' :
+                     rarity === 'ultimate' ? 'Ultima.' :
+                     rarity.charAt(0).toUpperCase() + rarity.slice(1)}
+                  </span>
+                  <span className="rarity-count">
+                    {filledCount}/{palette.maxSlots}
+                  </span>
+                  {palette.isStaking && (
+                    <Clock size={14} className="staking-icon" />
+                  )}
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Current Palette */}
+      <div className="current-palette">
+        <div className="palette-header">
+          <h3 style={{ color: RARITY_COLORS[activePaletteTab] }}>
+            Палитра {activePaletteTab.charAt(0).toUpperCase() + activePaletteTab.slice(1)}
+          </h3>
+          
+          {currentPalette.isStaking && (
+            <div className="staking-status">
+              <div className="staking-info">
+                <Clock size={16} />
+                <span>Стейкинг: {stakingTimer || 'Загрузка...'}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="palette-slots">
+          {currentPalette.colors.map((color, index) => (
+            <motion.div
+              key={index}
+              className={`palette-slot ${color ? 'filled' : 'empty'} ${currentPalette.isStaking ? 'staking' : ''}`}
+              style={{
+                backgroundColor: color 
+                  ? `rgb(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b})`
+                  : 'var(--bg-tertiary)',
+                border: color 
+                  ? `3px solid ${ColorGenerator.getBorderColor(color.rarity)}`
+                  : '2px dashed var(--border-color)',
+                cursor: color && !currentPalette.isStaking ? 'pointer' : 'default',
+                opacity: currentPalette.isStaking ? 0.8 : 1
+              }}
+              onClick={() => !currentPalette.isStaking && handleSlotClick(index)}
+              whileHover={color && !currentPalette.isStaking ? { scale: 1.05 } : {}}
+              whileTap={color && !currentPalette.isStaking ? { scale: 0.95 } : {}}
+            >
+              {!color && (
+                <div className="slot-placeholder">
+                  <motion.button
+                    className="quick-add-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Найти первый подходящий цвет в галерее
+                      const { gallery, addColorToPalette } = useGameStore.getState();
+                      const availableColor = gallery.find(c => 
+                        c.rarity === activePaletteTab && 
+                        !currentPalette.colors.some(paletteColor => paletteColor?.id === c.id)
+                      );
+                      
+                      if (availableColor && !currentPalette.isStaking) {
+                        addColorToPalette(availableColor.id, activePaletteTab, index);
+                        hapticFeedback.medium();
+                      } else if (!availableColor) {
+                        alert(`Нет доступных цветов редкости ${activePaletteTab}`);
+                      }
+                    }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    disabled={currentPalette.isStaking}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      border: 'none',
+                      background: currentPalette.isStaking 
+                        ? 'var(--bg-tertiary)' 
+                        : `linear-gradient(135deg, ${RARITY_COLORS[activePaletteTab]}, ${RARITY_COLORS[activePaletteTab]}dd)`,
+                      color: 'white',
+                      cursor: currentPalette.isStaking ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.2rem',
+                      fontWeight: 'bold',
+                      boxShadow: currentPalette.isStaking ? 'none' : '0 2px 8px rgba(0,0,0,0.2)'
+                    }}
+                  >
+                    +
+                  </motion.button>
+                  <span className="slot-number">{index + 1}</span>
+                </div>
+              )}
+              
+              {color && (
+                <div className="color-slot-content">
+                  <div className="color-hex">
+                    {ColorGenerator.getHexCode(color.rgb)}
+                  </div>
+                  {!currentPalette.isStaking && (
+                    <div className="remove-hint">
+                      <Trash2 size={12} />
+                    </div>
+                  )}
+                </div>
+              )}
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Palette Stats */}
+        <div className="palette-stats">
+          <div className="stat-item">
+            <TrendingUp size={16} />
+            <span>Заполнено: {filledSlots}/{currentPalette.maxSlots}</span>
+          </div>
+          <div className="stat-item">
+            <Zap size={16} />
+            <span>Стейкингов: {currentPalette.stakingCount}</span>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="palette-actions">
+          {currentPalette.isStaking ? (
+            <div className="staking-actions">
+              {canCompleteStaking ? (
+                <motion.button
+                  className="complete-staking-btn"
+                  onClick={handleCompleteStaking}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{
+                    backgroundColor: 'var(--success-color)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '12px 24px',
+                    borderRadius: '12px',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Zap size={16} />
+                  Завершить стейкинг
+                </motion.button>
+              ) : (
+                <div className="staking-in-progress">
+                  <Clock size={20} />
+                  <span>Стейкинг в процессе...</span>
+                </div>
+              )}
+              
+              <motion.button
+                className="cancel-staking-btn"
+                onClick={handleCancelStaking}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                style={{
+                  backgroundColor: 'var(--error-color)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  fontSize: '0.9rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer'
+                }}
+              >
+                <RotateCcw size={14} />
+                Отменить
+              </motion.button>
+            </div>
+          ) : (
+            <div className="normal-actions">
+              {canStartStaking && (
+                <motion.button
+                  className="start-staking-btn"
+                  onClick={handleStartStaking}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{
+                    backgroundColor: RARITY_COLORS[activePaletteTab],
+                    color: 'white',
+                    border: 'none',
+                    padding: '12px 24px',
+                    borderRadius: '12px',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Clock size={16} />
+                  Начать стейкинг
+                </motion.button>
+              )}
+
+              {canUpgrade && (
+                <motion.button
+                  className="upgrade-btn"
+                  onClick={handleUpgrade}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{
+                    backgroundColor: 'var(--accent-color)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '12px 24px',
+                    borderRadius: '12px',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <TrendingUp size={16} />
+                  Улучшить до {getNextRarity(activePaletteTab)}
+                </motion.button>
+              )}
+            </div>
+          )}
+
+          {/* Hints */}
+          {filledSlots === 0 && (
+            <div className="palette-hint">
+              🎨 Добавьте цвета из галереи для начала стейкинга
+            </div>
+          )}
+
+          {filledSlots > 0 && filledSlots < currentPalette.maxSlots && !currentPalette.isStaking && (
+            <div className="palette-hint">
+              ✨ Добавьте ещё {currentPalette.maxSlots - filledSlots} цветов для возможности улучшения
+            </div>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// Helper function to get next rarity
+function getNextRarity(currentRarity: string): string {
+  const rarities = [
+    'common', 'uncommon', 'rare', 'mythical', 'legendary', 
+    'ascendant', 'unique', 'ulterior', 'ultimate'
+  ];
+  const currentIndex = rarities.indexOf(currentRarity);
+  return currentIndex < rarities.length - 1 ? rarities[currentIndex + 1] : 'ultimate';
+}

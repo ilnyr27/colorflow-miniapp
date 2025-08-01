@@ -51,7 +51,7 @@ export const useTelegram = (): UseTelegramReturn => {
       console.warn('Telegram WebApp не найден. Возможно, приложение запущено вне Telegram.');
       
       // Для разработки создаем мок-пользователя
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === 'development' || import.meta.env.VITE_DEMO_MODE === 'true') {
         setUser({
           id: 123456789,
           first_name: 'Test',
@@ -60,6 +60,21 @@ export const useTelegram = (): UseTelegramReturn => {
           language_code: 'ru'
         });
         setIsReady(true);
+        
+        // Создаем мок WebApp для демо-режима
+        const mockWebApp = {
+          colorScheme: 'light',
+          ready: () => {},
+          expand: () => {},
+          showAlert: (message: string) => alert(message),
+          showConfirm: (message: string, callback: (confirmed: boolean) => void) => callback(confirm(message)),
+          HapticFeedback: {
+            impactOccurred: () => {},
+            notificationOccurred: () => {}
+          },
+          close: () => {}
+        };
+        setWebApp(mockWebApp as any);
       }
     }
   }, []);

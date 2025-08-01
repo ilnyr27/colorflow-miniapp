@@ -1,12 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Navigation } from './Navigation';
-import { HomePage } from '@/pages/HomePage';
-import { ColorsPage } from '@/pages/ColorsPage';
-import { RaritiesPage } from '@/pages/RaritiesPage';
-import { ShopPage } from '@/pages/ShopPage';
+import { GalleryPage } from '@/pages/GalleryPage';
+import { PalettePage } from '@/pages/PalettePage';
 import { MarketplacePage } from '@/pages/MarketplacePage';
+import { StatisticsPage } from '@/pages/StatisticsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 
 export const AppRouter: React.FC = () => {
@@ -34,11 +33,11 @@ export const AppRouter: React.FC = () => {
           transition={pageTransition}
         >
           <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/colors" element={<ColorsPage />} />
-            <Route path="/rarities" element={<RaritiesPage />} />
-            <Route path="/shop" element={<ShopPage />} />
+            <Route path="/" element={<Navigate to="/gallery" replace />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/palette" element={<PalettePage />} />
             <Route path="/marketplace" element={<MarketplacePage />} />
+            <Route path="/statistics" element={<StatisticsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </motion.main>

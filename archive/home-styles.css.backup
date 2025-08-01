@@ -1,0 +1,349 @@
+/* Additional Home Page Styles */
+
+/* Collection Progress Styles */
+.collection-progress-section {
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.rarity-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.rarity-progress-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.rarity-progress-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.rarity-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.rarity-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+}
+
+.rarity-badge.common {
+  background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+}
+
+.rarity-badge.uncommon {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+}
+
+.rarity-badge.rare {
+  background: linear-gradient(135deg, #3498db, #74b9ff);
+}
+
+.rarity-badge.mythical {
+  background: linear-gradient(135deg, #9b59b6, #a29bfe);
+}
+
+.rarity-badge.legendary {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
+.rarity-badge.ascendant {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+.rarity-badge.unique {
+  background: linear-gradient(135deg, #1abc9c, #00b894);
+}
+
+.rarity-badge.ulterior {
+  background: linear-gradient(135deg, #fd79a8, #e84393);
+}
+
+.rarity-badge.ultimate {
+  background: linear-gradient(135deg, #ff7675, #74b9ff, #a29bfe, #fd79a8);
+  background-size: 400% 400%;
+  animation: ultimate-gradient 3s ease-in-out infinite;
+}
+
+@keyframes ultimate-gradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.rarity-info {
+  flex: 1;
+}
+
+.rarity-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: capitalize;
+  margin-bottom: 2px;
+}
+
+.rarity-count {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.progress-visual {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.progress-bar.common .progress-fill {
+  background: linear-gradient(90deg, #95a5a6, #7f8c8d);
+}
+
+.progress-bar.uncommon .progress-fill {
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+}
+
+.progress-bar.rare .progress-fill {
+  background: linear-gradient(90deg, #3498db, #74b9ff);
+}
+
+.progress-bar.mythical .progress-fill {
+  background: linear-gradient(90deg, #9b59b6, #a29bfe);
+}
+
+.progress-bar.legendary .progress-fill {
+  background: linear-gradient(90deg, #f39c12, #e67e22);
+}
+
+.progress-bar.ascendant .progress-fill {
+  background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
+
+.progress-bar.unique .progress-fill {
+  background: linear-gradient(90deg, #1abc9c, #00b894);
+}
+
+.progress-bar.ulterior .progress-fill {
+  background: linear-gradient(90deg, #fd79a8, #e84393);
+}
+
+.progress-bar.ultimate .progress-fill {
+  background: linear-gradient(90deg, #ff7675, #74b9ff, #a29bfe, #fd79a8);
+  background-size: 200% 200%;
+  animation: ultimate-progress 2s ease-in-out infinite;
+}
+
+@keyframes ultimate-progress {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.progress-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Daily Progress Styles */
+.daily-progress-section {
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.daily-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.daily-stat-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.daily-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  border-color: var(--accent-color);
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--accent-color);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.stat-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.stat-item .label {
+  color: var(--text-secondary);
+}
+
+.stat-item .value {
+  color: var(--text-primary);
+  font-weight: 600;
+  padding: 2px 8px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+/* Achievement Badge Colors */
+.achievement-badge.common {
+  color: #95a5a6;
+}
+
+.achievement-badge.uncommon {
+  color: #27ae60;
+}
+
+.achievement-badge.rare {
+  color: #3498db;
+}
+
+.achievement-badge.mythical {
+  color: #9b59b6;
+}
+
+.achievement-badge.legendary {
+  color: #f39c12;
+}
+
+.achievement-badge.ascendant {
+  color: #e74c3c;
+}
+
+.achievement-badge.unique {
+  color: #1abc9c;
+}
+
+.achievement-badge.ulterior {
+  color: #fd79a8;
+}
+
+.achievement-badge.ultimate {
+  color: #ff7675;
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { 
+    color: #ff7675;
+    filter: drop-shadow(0 0 5px #ff7675);
+  }
+  25% { 
+    color: #74b9ff;
+    filter: drop-shadow(0 0 5px #74b9ff);
+  }
+  50% { 
+    color: #a29bfe;
+    filter: drop-shadow(0 0 5px #a29bfe);
+  }
+  75% { 
+    color: #fd79a8;
+    filter: drop-shadow(0 0 5px #fd79a8);
+  }
+}
+
+/* Quick Action Enhancements */
+.quick-action-card .action-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: -4px;
+  text-align: center;
+}
+
+/* Mobile responsive updates for new sections */
+@media (max-width: 768px) {
+  .rarity-progress-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .daily-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .global-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .player-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .rarity-progress-card {
+    padding: 12px;
+  }
+  
+  .daily-stat-card {
+    padding: 12px;
+  }
+  
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .rarity-badge {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .player-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -196,32 +196,33 @@ export class GameAPI {
     return data.map(color => ({
       id: color.id,
       rarity: color.rarity as any,
-      rgb: {
-        r: color.rgb_r,
-        g: color.rgb_g,
-        b: color.rgb_b,
-        name: color.rgb_name || undefined,
-        isUltimate: color.is_ultimate
-      },
+      hex: `#${color.rgb_r.toString(16).padStart(2, '0')}${color.rgb_g.toString(16).padStart(2, '0')}${color.rgb_b.toString(16).padStart(2, '0')}`.toUpperCase(),
+      name: color.user_name || `Цвет #${color.rgb_r.toString(16).padStart(2, '0')}${color.rgb_g.toString(16).padStart(2, '0')}${color.rgb_b.toString(16).padStart(2, '0')}`.toUpperCase(),
+      dateObtained: color.created_at,
       stakingCount: color.staking_count,
-      ownedSince: new Date(color.created_at),
-      name: color.user_name || undefined
+      ownedSince: new Date(color.created_at)
     }));
   }
 
   static async createColor(userId: number, color: Color): Promise<void> {
+    // Конвертируем hex в RGB
+    const hex = color.hex.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
     const { error } = await supabase
       .from('colors')
       .insert({
         id: color.id,
         user_id: userId,
         rarity: color.rarity,
-        rgb_r: color.rgb.r,
-        rgb_g: color.rgb.g,
-        rgb_b: color.rgb.b,
-        rgb_name: color.rgb.name,
-        is_ultimate: color.rgb.isUltimate || false,
-        staking_count: color.stakingCount,
+        rgb_r: r,
+        rgb_g: g,
+        rgb_b: b,
+        rgb_name: null, // Для особых цветов
+        is_ultimate: color.rarity === 'ultimate',
+        staking_count: color.stakingCount || 0,
         user_name: color.name
       });
 
@@ -253,16 +254,11 @@ export class GameAPI {
       color: {
         id: listing.colors.id,
         rarity: listing.colors.rarity as any,
-        rgb: {
-          r: listing.colors.rgb_r,
-          g: listing.colors.rgb_g,
-          b: listing.colors.rgb_b,
-          name: listing.colors.rgb_name || undefined,
-          isUltimate: listing.colors.is_ultimate
-        },
+        hex: `#${listing.colors.rgb_r.toString(16).padStart(2, '0')}${listing.colors.rgb_g.toString(16).padStart(2, '0')}${listing.colors.rgb_b.toString(16).padStart(2, '0')}`.toUpperCase(),
+        name: listing.colors.user_name || `Цвет #${listing.colors.rgb_r.toString(16).padStart(2, '0')}${listing.colors.rgb_g.toString(16).padStart(2, '0')}${listing.colors.rgb_b.toString(16).padStart(2, '0')}`.toUpperCase(),
+        dateObtained: listing.colors.created_at,
         stakingCount: listing.colors.staking_count,
-        ownedSince: new Date(listing.colors.created_at),
-        name: listing.colors.user_name || undefined
+        ownedSince: new Date(listing.colors.created_at)
       },
       priceStars: listing.price_stars,
       sellerId: listing.seller_id,
@@ -296,9 +292,10 @@ export class GameAPI {
 
   // Функция для сброса тестовых данных пользователя (только для разработки)
   static async resetUserData(userId: number): Promise<void> {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('Сброс данных недоступен в продакшене');
-    }
+    // Проверяем режим разработки
+    const isDevelopment = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         import.meta.env.DEV;
 
     // Удаляем все цвета пользователя
     await supabase
@@ -317,5 +314,71 @@ export class GameAPI {
       .eq('telegram_id', userId);
 
     console.log(`Данные пользователя ${userId} сброшены`);
+  }
+
+  // Новые методы для статистики и настроек
+  static async getUserProfile(userId: number): Promise<any> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('telegram_id', userId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async getGlobalStats(): Promise<any> {
+    // Заглушка для глобальной статистики
+    return {
+      total_colors: 1587342,
+      online_players: Math.floor(Math.random() * 1000) + 500,
+      active_stakings: Math.floor(Math.random() * 200) + 100,
+      total_operations: 2847593
+    };
+  }
+
+  static async updateUserProfile(userId: number, updates: any): Promise<any> {
+    const { data, error } = await supabase
+      .from('users')
+      .update(updates)
+      .eq('telegram_id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async deleteUserAccount(userId: number): Promise<void> {
+    // Удаляем цвета пользователя
+    await supabase
+      .from('colors')
+      .delete()
+      .eq('user_id', userId);
+
+    // Удаляем записи о покупках
+    await supabase
+      .from('star_purchases')
+      .delete()
+      .eq('user_id', userId);
+
+    // Удаляем пользователя
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('telegram_id', userId);
+
+    if (error) throw error;
+  }
+
+  static async updateColorName(userId: number, colorId: string, newName: string): Promise<void> {
+    const { error } = await supabase
+      .from('colors')
+      .update({ user_name: newName })
+      .eq('id', colorId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
   }
 }

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ColorRarity, Palette } from '@/types/game';
 import { GAME_CONFIG } from '@/config/game';
+import { useGameStore } from '@/store/gameStore';
+import { useTelegram } from '@/hooks/useTelegram';
+import { X } from 'lucide-react';
 
 interface StakingStatusProps {
   rarity: ColorRarity;
@@ -15,6 +18,9 @@ export const StakingStatus: React.FC<StakingStatusProps> = ({
   onStakingComplete 
 }) => {
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [cancelling, setCancelling] = useState(false);
+  const { cancelStaking } = useGameStore();
+  const { hapticFeedback, showAlert } = useTelegram();
 
   // Обновляем время каждую секунду
   useEffect(() => {
@@ -74,6 +80,25 @@ export const StakingStatus: React.FC<StakingStatusProps> = ({
     return colors[rarity] || '#9e9e9e';
   };
 
+  const handleCancelStaking = async () => {
+    if (cancelling) return;
+    
+    setCancelling(true);
+    hapticFeedback.medium();
+    
+    try {
+      await cancelStaking(rarity);
+      showAlert('Стейкинг отменен. Цвета возвращены в галерею.');
+      hapticFeedback.success();
+    } catch (error) {
+      console.error('Ошибка отмены стейкинга:', error);
+      showAlert('Ошибка при отмене стейкинга');
+      hapticFeedback.error();
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   if (!palette.isStaking) {
     return null;
   }
@@ -112,17 +137,56 @@ export const StakingStatus: React.FC<StakingStatusProps> = ({
         </div>
 
         <div className="progress-container">
-          <div className="progress-bar">
-            <div 
+          <div className="progress-bar" style={{ 
+            backgroundColor: '#f0f0f0',
+            borderRadius: '10px',
+            height: '8px',
+            overflow: 'hidden',
+            position: 'relative'
+          }}>
+            <motion.div 
               className="progress-fill"
               style={{
-                width: `${progress}%`,
-                background: `linear-gradient(90deg, ${getRarityColor(rarity)}, ${getRarityColor(rarity)}aa)`
+                height: '100%',
+                background: `linear-gradient(90deg, #4caf50, #66bb6a)`,
+                borderRadius: '10px',
+                transition: 'width 0.3s ease'
               }}
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.5 }}
             />
           </div>
-          <div className="progress-text">
-            {progress.toFixed(1)}% завершено
+          <div className="progress-text" style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '8px'
+          }}>
+            <span>{progress.toFixed(1)}% завершено</span>
+            <motion.button
+              className="cancel-staking-btn"
+              onClick={handleCancelStaking}
+              disabled={cancelling}
+              style={{
+                background: '#ff4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '4px 8px',
+                fontSize: '12px',
+                cursor: cancelling ? 'not-allowed' : 'pointer',
+                opacity: cancelling ? 0.6 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+              whileHover={!cancelling ? { scale: 1.05 } : {}}
+              whileTap={!cancelling ? { scale: 0.95 } : {}}
+            >
+              <X size={12} />
+              {cancelling ? 'Отмена...' : 'Отменить'}
+            </motion.button>
           </div>
         </div>
 

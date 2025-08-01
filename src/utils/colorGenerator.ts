@@ -18,10 +18,16 @@ export class ColorGenerator {
       rgb = this.generateRgbByRarity(rarity);
     }
 
+    // Генерируем имя для цвета
+    const colorName = rgb.name || this.generateColorName(rgb, rarity);
+    const hexCode = this.getHexCode(rgb);
+
     return {
       id,
       rarity,
-      rgb,
+      hex: hexCode,
+      name: colorName,
+      dateObtained: new Date().toISOString(),
       stakingCount: 0,
       ownedSince: new Date()
     };
@@ -221,5 +227,52 @@ export class ColorGenerator {
 
   static reset(): void {
     this.usedColors.clear();
+  }
+
+  // Новая функция для генерации имен цветов
+  private static generateColorName(rgb: RGB, rarity: ColorRarity): string {
+    if (rgb.name) return rgb.name;
+    
+    if (rgb.isUltimate) {
+      return 'Ультимативный';
+    }
+
+    // Массив красивых названий для цветов
+    const colorNames = {
+      common: [
+        'Лунный свет', 'Морская пена', 'Облачный туман', 'Роса на траве',
+        'Лёгкий ветер', 'Пушистое облако', 'Мягкий песок'
+      ],
+      uncommon: [
+        'Лавандовые поля', 'Океанская волна', 'Лесная чаща', 'Коралловый риф',
+        'Горный ручей', 'Лепестки сакуры', 'Полуночный бриз'
+      ],
+      rare: [
+        'Кристалл рассвета', 'Мистический туман', 'Небесная спираль', 'Лунная дорожка',
+        'Звёздная пыль', 'Магическое сияние', 'Океанская бездна'
+      ],
+      mythical: [
+        'Драконье пламя', 'Фениксово крыло', 'Единорожья грива', 'Ангельское опал',
+        'Божественное сияние', 'Мифическая дымка', 'Царский пурпур'
+      ],
+      legendary: [
+        'Легендарный закат', 'Золото солнца', 'Серебро луны', 'Медный огонь',
+        'Алмазная роса', 'Платиновое свечение', 'Королевский вельвет'
+      ],
+      ascendant: [
+        'Вознесение', 'Небесные врата', 'Божественный свет', 'Просветление',
+        'Нирвана', 'Трансценденция', 'Космическая пыль'
+      ],
+      unique: ['Белый', 'Красный', 'Зёленый', 'Синий', 'Жёлтый', 'Маджента'],
+      ulterior: ['Чёрный', 'Белый'],
+      ultimate: ['Ультимативный']
+    };
+
+    const names = colorNames[rarity] || colorNames.common;
+    const randomName = names[Math.floor(Math.random() * names.length)];
+    
+    // Добавляем случайное число для уникальности
+    const uniqueNumber = Math.floor(Math.random() * 1000) + 1;
+    return `${randomName} #${uniqueNumber}`;
   }
 }

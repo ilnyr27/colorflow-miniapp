@@ -4,18 +4,13 @@ import { useGameStore } from '@/store/gameStore';
 import { useTelegram } from '@/hooks/useTelegram';
 import { ColorGallery } from '@/components/ColorGallery';
 import { PaletteSection } from '@/components/PaletteSection';
-import { StakingStatus } from '@/components/StakingStatus';
-import { Palette, Image, Layers } from 'lucide-react';
+import { Palette, Image } from 'lucide-react';
 
-type ColorsTab = 'gallery' | 'palette' | 'staking';
+type ColorsTab = 'gallery' | 'palette';
 
 export const ColorsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ColorsTab>('gallery');
-  const { palettes } = useGameStore();
   const { colorScheme, hapticFeedback } = useTelegram();
-
-  // Проверяем, есть ли активный стейкинг
-  const activeStaking = Object.entries(palettes).find(([_, palette]) => palette.isStaking);
 
   const tabs = [
     {
@@ -26,21 +21,13 @@ export const ColorsPage: React.FC = () => {
     },
     {
       id: 'palette' as ColorsTab,
-      label: 'Палитра',
+      label: 'Палитры',
       icon: Palette,
       color: '#6c5ce7'
-    },
-    {
-      id: 'staking' as ColorsTab,
-      label: 'Стейкинг',
-      icon: Layers,
-      color: '#fdcb6e',
-      disabled: !activeStaking
     }
   ];
 
   const handleTabChange = (tabId: ColorsTab) => {
-    if (tabId === 'staking' && !activeStaking) return;
     setActiveTab(tabId);
     hapticFeedback.light();
   };
@@ -76,7 +63,7 @@ export const ColorsPage: React.FC = () => {
         <div className="header-content">
           <h1 className="page-title">
             <Palette size={24} />
-            Цвета
+            Палитры и стейкинг
           </h1>
         </div>
       </motion.header>
@@ -92,16 +79,14 @@ export const ColorsPage: React.FC = () => {
           {tabs.map((tab) => {
             const IconComponent = tab.icon;
             const isActive = activeTab === tab.id;
-            const isDisabled = tab.disabled;
             
             return (
               <motion.button
                 key={tab.id}
-                className={`tab-button ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
+                className={`tab-button ${isActive ? 'active' : ''}`}
                 onClick={() => handleTabChange(tab.id)}
-                disabled={isDisabled}
-                whileHover={!isDisabled ? { scale: 1.05 } : {}}
-                whileTap={!isDisabled ? { scale: 0.95 } : {}}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 style={{
                   borderColor: isActive ? tab.color : 'transparent',
                   backgroundColor: isActive ? `${tab.color}20` : 'transparent'
@@ -110,7 +95,7 @@ export const ColorsPage: React.FC = () => {
                 <motion.div
                   className="tab-content"
                   animate={{
-                    color: isActive ? tab.color : (isDisabled ? '#adb5bd' : '#6c757d')
+                    color: isActive ? tab.color : '#6c757d'
                   }}
                   transition={{ duration: 0.2 }}
                 >
@@ -176,37 +161,12 @@ export const ColorsPage: React.FC = () => {
               <div className="content-section">
                 <h3 className="section-title">
                   <Palette size={20} />
-                  Управление палитрами
+                  Управление палитрами и стейкинг
                 </h3>
                 <p className="section-description">
-                  Создавайте палитры из цветов одной редкости для стейкинга и улучшения.
+                  Создавайте палитры из цветов одной редкости, запускайте стейкинг и отслеживайте прогресс.
                 </p>
                 <PaletteSection />
-              </div>
-            </motion.div>
-          )}
-
-          {activeTab === 'staking' && activeStaking && (
-            <motion.div
-              key="staking"
-              className="tab-content-panel"
-              variants={itemVariants}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-            >
-              <div className="content-section">
-                <h3 className="section-title">
-                  <Layers size={20} />
-                  Активный стейкинг
-                </h3>
-                <p className="section-description">
-                  Отслеживайте прогресс текущего стейкинга и получайте награды.
-                </p>
-                <StakingStatus 
-                  rarity={activeStaking[0] as any}
-                  palette={activeStaking[1]}
-                />
               </div>
             </motion.div>
           )}
